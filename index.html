@@ -260,6 +260,7 @@ const CODES=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','
 const CL=['#1e3a5f','#b45309','#059669','#dc2626','#7c3aed','#0891b2','#c2410c','#be185d','#4d7c0f','#0d9488','#9f1239','#7e22ce'];
 
 // ===== STATE =====
+let _initDone=false;
 let S={
   openH:11, closeH:18, restMin:120, restUnit:60, maxParts:2, fixedCount:7, restMode:'smart',
   zones:[{name:'리셉션',color:CL[0],min:2},{name:'Fair Zone',color:CL[1],min:3},{name:'F&B',color:CL[2],min:2}],
@@ -273,10 +274,12 @@ let S={
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded',()=>{
-  buildTimeOpts(); bindTabs(); bindInputs();
+  buildTimeOpts(); bindTabs();
   const loaded=autoLoad();
   if(!loaded){ rebuildStaff(); renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt(); }
+  bindInputs();
   renderSaveList();
+  _initDone=true;
 });
 
 // ===== TABS =====
@@ -773,6 +776,7 @@ function getSerializableState(){
 }
 
 function autoSave(){
+  if(!_initDone)return;
   try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
 }
 
