@@ -241,24 +241,38 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f0f4f8;color:#1a2332}
     </div>
   </div>
 
-  <!-- 기기 간 공유 -->
+  <!-- 클라우드 동기화 -->
   <div class="card p-5 mb-4">
-    <h3 class="sec-title mb-2">📲 기기 간 공유</h3>
-    <p class="text-[11px] text-[#94a3b8] mb-3">컴퓨터에서 만든 스케줄을 핸드폰으로 보내거나, 반대로 가져올 수 있습니다.</p>
-    <div class="flex gap-2 flex-wrap mb-3">
-      <button onclick="exportAll()" class="btn btn-p text-sm py-2.5 px-5">📤 전체 내보내기</button>
-      <button onclick="exportCurrent()" class="btn btn-s text-sm py-2.5 px-5">📤 현재 스케줄만</button>
-      <label class="btn btn-g text-sm py-2.5 px-5 cursor-pointer">📥 가져오기
-        <input type="file" accept=".json" onchange="importFile(event)" class="hidden">
-      </label>
-    </div>
-    <div id="shareLink" class="hidden">
-      <label class="label">공유 텍스트 (복사해서 카톡/메신저로 보내기)</label>
-      <div class="flex gap-2">
-        <textarea id="shareText" class="inp text-[11px] font-mono" rows="3" readonly></textarea>
-        <button onclick="copyShare()" class="btn btn-p text-sm py-2 px-4 self-start">📋 복사</button>
+    <h3 class="sec-title mb-3">☁️ 클라우드 동기화</h3>
+    <div id="syncNotConnected">
+      <p class="text-xs text-[#64748b] mb-3">컴퓨터와 핸드폰을 연결하면 데이터가 자동으로 동기화됩니다.</p>
+      <div class="flex gap-2 flex-wrap mb-3">
+        <button onclick="createSyncRoom()" class="btn btn-p text-sm py-2.5 px-5">🔗 새 연결 만들기</button>
       </div>
-      <p class="text-[10px] text-[#94a3b8] mt-1">받는 쪽: 복사한 텍스트를 .json 파일로 저장 후 "가져오기"로 열기</p>
+      <div class="flex gap-2 items-end flex-wrap">
+        <div><label class="label">기존 연결 코드 입력</label>
+          <input type="text" id="syncCodeInput" class="inp font-mono text-center tracking-widest" style="width:260px" placeholder="코드를 입력하세요"></div>
+        <button onclick="joinSyncRoom()" class="btn btn-g text-sm py-2.5 px-5">📲 연결</button>
+      </div>
+    </div>
+    <div id="syncConnected" class="hidden">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-sm font-bold text-emerald-700">클라우드 연결됨</span>
+      </div>
+      <div class="card-s p-3 mb-3">
+        <label class="label">연결 코드 (다른 기기에서 이 코드로 연결)</label>
+        <div class="flex gap-2 items-center">
+          <code id="syncCodeDisplay" class="text-lg font-bold font-mono tracking-widest text-[#1e3a5f] select-all"></code>
+          <button onclick="copySyncCode()" class="btn btn-s text-[11px] py-1 px-3">📋 복사</button>
+        </div>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="cloudPush()" class="btn btn-p text-sm py-2 px-4">⬆️ 지금 업로드</button>
+        <button onclick="cloudPull()" class="btn btn-s text-sm py-2 px-4">⬇️ 지금 다운로드</button>
+        <button onclick="disconnectSync()" class="btn btn-d text-sm py-2 px-4">연결 해제</button>
+      </div>
+      <p id="syncStatus" class="text-[10px] text-[#94a3b8] mt-2"></p>
     </div>
   </div>
 
@@ -300,7 +314,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(!loaded){ rebuildStaff(); renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt(); }
   bindInputs();
   renderSaveList();
+  updateSyncUI();
   _initDone=true;
+  // URL 파라미터로 자동 연결 (?sync=코드)
+  const urlSync=new URLSearchParams(location.search).get('sync');
+  if(urlSync&&!_syncId){document.getElementById('syncCodeInput').value=urlSync;joinSyncRoom();}
+  // 이미 연결된 경우 자동 다운로드
+  else if(_syncId){cloudPull();}
 });
 
 // ===== TABS =====
@@ -799,6 +819,7 @@ function getSerializableState(){
 function autoSave(){
   if(!_initDone)return;
   try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
+  schedulePush();
 }
 
 function autoLoad(){
@@ -941,61 +962,112 @@ function renderSaveList(){
   w.innerHTML=h;
 }
 
-// ===== EXPORT / IMPORT =====
-function exportAll(){
-  const slots=getSaveSlots();
-  const payload={type:'spaceSch_export',version:1,current:getSerializableState(),slots:slots,exportDate:new Date().toISOString()};
-  downloadJSON(payload,`스케줄_전체_${todayStr()}.json`);
-  toast('📤','전체 내보내기 완료');
-}
-function exportCurrent(){
-  const payload={type:'spaceSch_export',version:1,current:getSerializableState(),slots:[],exportDate:new Date().toISOString()};
-  downloadJSON(payload,`스케줄_${todayStr()}.json`);
-  // 모바일이면 공유 API 시도
-  if(navigator.share){
-    const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
-    const file=new File([blob],`스케줄_${todayStr()}.json`,{type:'application/json'});
-    navigator.share({title:'Space Scheduler 스케줄',files:[file]}).catch(()=>{});
+// ===== CLOUD SYNC =====
+const BLOB_API='https://jsonblob.com/api/jsonBlob';
+const LS_SYNC='spaceSch_syncId';
+let _syncId=localStorage.getItem(LS_SYNC)||'';
+let _pushTimer=null;
+
+function updateSyncUI(){
+  const nc=document.getElementById('syncNotConnected');
+  const sc=document.getElementById('syncConnected');
+  if(!nc||!sc)return;
+  if(_syncId){
+    nc.classList.add('hidden');sc.classList.remove('hidden');
+    document.getElementById('syncCodeDisplay').textContent=_syncId;
+  }else{
+    nc.classList.remove('hidden');sc.classList.add('hidden');
   }
-  toast('📤','현재 스케줄 내보내기 완료');
 }
-function downloadJSON(obj,filename){
-  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
-  URL.revokeObjectURL(url);
+
+async function createSyncRoom(){
+  toast('☁️','클라우드 연결 생성 중...');
+  try{
+    const payload={v:1,current:getSerializableState(),slots:getSaveSlots(),updated:new Date().toISOString()};
+    const res=await fetch(BLOB_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok)throw new Error('create failed');
+    const blobId=res.headers.get('X-jsonblob-id')||res.headers.get('location')?.split('/').pop();
+    if(!blobId)throw new Error('no id');
+    _syncId=blobId;
+    localStorage.setItem(LS_SYNC,_syncId);
+    updateSyncUI();
+    toast('✅','클라우드 연결 완료! 연결 코드를 다른 기기에 입력하세요.');
+  }catch(e){toast('⚠️','연결 생성 실패: '+e.message);}
 }
-function importFile(e){
-  const file=e.target.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      const data=JSON.parse(ev.target.result);
-      if(data.type!=='spaceSch_export'){toast('⚠️','올바른 파일이 아닙니다');return;}
-      // 현재 스케줄 적용
-      if(data.current){applyState(data.current);autoSave();}
-      // 저장 슬롯 병합
-      if(data.slots&&data.slots.length){
-        const existing=getSaveSlots();
-        const existingNames=new Set(existing.map(s=>s.name));
-        let added=0;
-        data.slots.forEach(sl=>{
-          if(!existingNames.has(sl.name)){existing.unshift(sl);added++;}
-        });
-        setSaveSlots(existing);
-        if(added)toast('📂',`${added}개 저장 슬롯 추가됨`);
-      }
-      renderSaveList();
-      toast('✅','가져오기 완료!');
-    }catch(err){toast('⚠️','파일 읽기 오류');}
-  };
-  reader.readAsText(file);
-  e.target.value='';
+
+async function joinSyncRoom(){
+  const code=(document.getElementById('syncCodeInput').value||'').trim();
+  if(!code){toast('⚠️','연결 코드를 입력하세요');return;}
+  toast('☁️','연결 중...');
+  try{
+    const res=await fetch(BLOB_API+'/'+code);
+    if(!res.ok)throw new Error('invalid code');
+    const data=await res.json();
+    if(!data.v){toast('⚠️','올바른 연결 코드가 아닙니다');return;}
+    _syncId=code;
+    localStorage.setItem(LS_SYNC,_syncId);
+    // 클라우드 데이터 적용
+    if(data.current){applyState(data.current);autoSave();}
+    if(data.slots&&data.slots.length){
+      const existing=getSaveSlots();
+      const existingNames=new Set(existing.map(s=>s.name));
+      data.slots.forEach(sl=>{if(!existingNames.has(sl.name))existing.unshift(sl);});
+      setSaveSlots(existing);
+    }
+    renderSaveList();updateSyncUI();
+    toast('✅','연결 완료! 데이터를 불러왔습니다.');
+  }catch(e){toast('⚠️','연결 실패: 코드를 확인하세요');}
 }
-function todayStr(){return new Date().toISOString().slice(0,10);}
-function copyShare(){
-  const el=document.getElementById('shareText');
-  navigator.clipboard.writeText(el.value).then(()=>toast('📋','복사 완료!')).catch(()=>{el.select();document.execCommand('copy');toast('📋','복사 완료!');});
+
+async function cloudPush(){
+  if(!_syncId)return;
+  try{
+    const payload={v:1,current:getSerializableState(),slots:getSaveSlots(),updated:new Date().toISOString()};
+    const res=await fetch(BLOB_API+'/'+_syncId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(!res.ok)throw new Error('push failed');
+    const st=document.getElementById('syncStatus');
+    if(st)st.textContent=`마지막 업로드: ${new Date().toLocaleTimeString()}`;
+    return true;
+  }catch(e){return false;}
+}
+
+async function cloudPull(){
+  if(!_syncId)return;
+  toast('⬇️','다운로드 중...');
+  try{
+    const res=await fetch(BLOB_API+'/'+_syncId);
+    if(!res.ok)throw new Error('pull failed');
+    const data=await res.json();
+    if(data.current){applyState(data.current);autoSave();}
+    if(data.slots&&data.slots.length){
+      const existing=getSaveSlots();
+      const existingNames=new Set(existing.map(s=>s.name));
+      let added=0;
+      data.slots.forEach(sl=>{if(!existingNames.has(sl.name)){existing.unshift(sl);added++;}});
+      setSaveSlots(existing);
+    }
+    renderSaveList();
+    const st=document.getElementById('syncStatus');
+    if(st)st.textContent=`마지막 다운로드: ${new Date().toLocaleTimeString()}`;
+    toast('✅','다운로드 완료!');
+  }catch(e){toast('⚠️','다운로드 실패');}
+}
+
+function disconnectSync(){
+  if(!confirm('클라우드 연결을 해제할까요?\n로컬 데이터는 유지됩니다.'))return;
+  _syncId='';localStorage.removeItem(LS_SYNC);
+  updateSyncUI();toast('🔌','연결 해제됨');
+}
+
+function copySyncCode(){
+  navigator.clipboard.writeText(_syncId).then(()=>toast('📋','코드 복사 완료!')).catch(()=>{});
+}
+
+// 자동 업로드: autoSave 후 디바운스로 클라우드 푸시
+function schedulePush(){
+  if(!_syncId)return;
+  clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(()=>cloudPush(),3000); // 3초 후 자동 업로드
 }
 
 // ===== PWA =====
