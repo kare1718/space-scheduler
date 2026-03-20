@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Scheduler</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SpaceSch">
+<meta name="theme-color" content="#1e3a5f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px}
+body{font-family:'Noto Sans KR',sans-serif;background:#f0f4f8;color:#1a2332}
+
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;box-shadow:0 1px 3px rgba(30,58,95,.05)}
+.card-s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px}
+.inp{background:#f8fafc;border:1px solid #cbd5e1;color:#1a2332;border-radius:8px;padding:7px 11px;font-size:13px;transition:.2s;font-family:inherit;width:100%}
+.inp:focus{outline:none;border-color:#1e3a5f;box-shadow:0 0 0 3px rgba(30,58,95,.08)}
+.btn{padding:8px 18px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:inherit}
+.btn-p{background:#1e3a5f;color:#fff}.btn-p:hover{background:#15304f;box-shadow:0 3px 12px rgba(30,58,95,.2)}
+.btn-s{background:#e8edf3;color:#1e3a5f}.btn-s:hover{background:#dce3ed}
+.btn-d{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}.btn-d:hover{background:#fee2e2}
+.btn-g{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0}.btn-g:hover{background:#d1fae5}
+.btn-w{background:#fffbeb;color:#b45309;border:1px solid #fde68a}.btn-w:hover{background:#fef3c7}
+
+.tab-btn{padding:9px 18px;border-radius:12px;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit}
+.tab-btn.on{background:#1e3a5f;color:#fff;box-shadow:0 2px 10px rgba(30,58,95,.2)}
+.tab-btn:not(.on):hover{background:#e8edf3;color:#1e3a5f}
+
+.sec-title{font-size:15px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:6px}
+.label{font-size:11px;color:#64748b;margin-bottom:3px;display:block;font-weight:500}
+
+/* Schedule */
+.sch-cell{padding:8px 10px;border-bottom:1px solid #f1f5f9;text-align:center;vertical-align:middle;font-size:13px}
+.sch-cell.drop-over{background:#dbeafe!important;box-shadow:inset 0 0 0 2px #3b82f6}
+.sch-tag{display:inline-block;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700;margin:1px;cursor:grab;transition:all .15s}
+.sch-tag:hover{transform:scale(1.06);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.sch-tag.dragging-tag{opacity:.35}
+.sch-tag.unmapped{border:2px dashed!important;opacity:.7}
+.sch-tag.mapped{border:2px solid!important}
+
+/* Name bank chip */
+.name-chip{padding:6px 14px;border-radius:9px;font-size:13px;font-weight:700;cursor:grab;user-select:none;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.name-chip:hover{transform:scale(1.06);box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.name-chip.used{cursor:default}
+
+/* Attendance */
+.late-badge{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.ontime-badge{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;z-index:200;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast>div{background:#1e3a5f;color:#fff;border-radius:12px;padding:12px 20px;font-size:14px;box-shadow:0 4px 20px rgba(30,58,95,.25);display:flex;align-items:center;gap:8px;pointer-events:auto}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .35s ease forwards}
+
+@media(max-width:1024px){.main-grid{grid-template-columns:1fr!important}}
+@media(max-width:640px){.tab-btn{padding:7px 12px;font-size:12px}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-[100] px-4 py-2.5 shadow-sm">
+  <div class="max-w-[1400px] mx-auto flex items-center justify-between flex-wrap gap-2">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-[#1e3a5f] flex items-center justify-center text-lg text-white">📋</div>
+      <div><h1 class="text-base font-bold text-[#1e3a5f]">Space Scheduler</h1></div>
+    </div>
+    <nav class="flex gap-1.5 flex-wrap" id="tabs">
+      <button class="tab-btn on" data-t="setup">⚙️ 설정</button>
+      <button class="tab-btn" data-t="sch">📋 스케줄</button>
+      <button class="tab-btn" data-t="att">📝 출결</button>
+      <button class="tab-btn" data-t="save">💾 저장</button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-[1400px] mx-auto p-4">
+
+<!-- ======================== TAB: 설정 ======================== -->
+<section id="p-setup" class="tab-p fade-up">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <div class="card p-5">
+      <h3 class="sec-title mb-4">🕐 운영 시간</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">오픈</label><select id="selOpen" class="inp"></select></div>
+        <div><label class="label">마감</label><select id="selClose" class="inp"></select></div>
+      </div>
+      <div class="mt-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
+        <p class="text-sm text-[#1e3a5f]">총 <b id="lblHours">7</b>시간 운영</p>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <h3 class="sec-title mb-4">☕ 휴게 & 규칙</h3>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="label">1인 기본 휴게(분)</label><input type="number" id="inpRest" value="120" min="0" step="5" class="inp"></div>
+        <div><label class="label">휴게 단위(분)</label><input type="number" id="inpRestUnit" value="60" min="5" step="5" class="inp"></div>
+        <div><label class="label">교대 최대 파트</label><input type="number" id="inpMaxP" value="2" min="1" max="8" class="inp"></div>
+        <div><label class="label">상시 최소 인원</label><input type="number" id="inpFixed" value="7" min="0" class="inp"></div>
+      </div>
+      <div class="mt-3"><label class="label">휴게 배분 방식</label>
+        <select id="selRestMode" class="inp" onchange="S.restMode=this.value;autoSave();">
+          <option value="smart">🧠 AI 분산 (기본)</option>
+          <option value="rotate">🔄 순번 밀어내기 (ㄱㄴㄷ→ㄴㄷㄹ)</option>
+          <option value="push">⏩ 전체 밀어내기 (그룹 순환)</option>
+        </select>
+        <p class="text-[10px] text-[#94a3b8] mt-1" id="restModeDesc">AI가 공정하게 분산 배치합니다.</p>
+      </div>
+      <div id="restRecommend" class="mt-3 p-3 rounded-lg bg-indigo-50 border border-indigo-100">
+        <p class="text-xs font-bold text-[#1e3a5f]">💡 추천 휴게: <span id="restRecText">-</span></p>
+      </div>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="sec-title">📍 구역</h3>
+        <button onclick="addZone()" class="btn btn-p text-sm py-1.5">+ 추가</button>
+      </div>
+      <div id="zoneList" class="space-y-2"></div>
+    </div>
+
+    <div class="card p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="sec-title">👥 인원</h3>
+        <div class="flex items-center gap-2">
+          <label class="label mb-0">총원</label>
+          <input type="number" id="inpStaffCount" value="10" min="1" max="26" class="inp" style="width:70px" onchange="rebuildStaff()">
+        </div>
+      </div>
+      <p class="text-xs text-[#94a3b8] mb-3">코드명(ㄱ~ㅊ)은 자동 부여. 스케줄 탭에서 실제 이름을 배정합니다.</p>
+      <div id="staffList" class="space-y-1.5"></div>
+    </div>
+
+    <div class="card p-5 lg:col-span-2">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="sec-title">⏰ 개인별 휴게</h3>
+        <button onclick="applyGlobalRest()" class="btn btn-s text-sm py-1.5">일괄 적용</button>
+      </div>
+      <div id="restGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== TAB: 스케줄 ======================== -->
+<section id="p-sch" class="tab-p hidden">
+
+  <div class="card p-5 mb-4 flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h2 class="text-lg font-bold text-[#1e3a5f]">📋 스케줄</h2>
+      <p class="text-xs text-[#64748b] mt-1">자동 생성 → 이름 입력 → 이름표를 코드 위에 드롭하여 배정</p>
+    </div>
+    <div class="flex gap-2 flex-wrap items-center">
+      <select id="schRestMode" class="inp text-xs py-2" style="width:auto" onchange="S.restMode=this.value;document.getElementById('selRestMode').value=this.value;autoSave();">
+        <option value="smart">🧠 AI 분산</option>
+        <option value="rotate">🔄 순번 밀어내기</option>
+        <option value="push">⏩ 전체 밀어내기</option>
+      </select>
+      <button onclick="genSchedule()" class="btn btn-p text-sm py-2.5 px-6">🤖 자동 생성</button>
+      <button onclick="downloadPNG()" id="dlPng" class="btn btn-s text-sm py-2.5 hidden">📸 PNG</button>
+      <button onclick="downloadPDF()" id="dlPdf" class="btn btn-s text-sm py-2.5 hidden">📄 PDF</button>
+    </div>
+  </div>
+
+  <div id="ruleBox" class="card p-4 mb-4 hidden">
+    <h3 class="sec-title mb-2">✅ 규칙 검증</h3>
+    <div id="ruleGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-1.5"></div>
+  </div>
+
+  <!-- 이름 은행 -->
+  <div id="nameBankWrap" class="card p-4 mb-4 hidden">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="sec-title text-sm">👥 이름 목록</h3>
+      <div class="flex gap-1.5">
+        <button onclick="addNameEntry()" class="btn btn-s text-[11px] py-1 px-2">+ 추가</button>
+        <button onclick="clearAllNames()" class="btn btn-d text-[11px] py-1 px-2">초기화</button>
+      </div>
+    </div>
+    <p class="text-[11px] text-[#94a3b8] mb-3">이름을 입력 → 아래 이름표가 생성됨 → 스케줄의 코드(ㄱ,ㄴ..) 위에 끌어다 놓으면 전체 교체</p>
+    <!-- 이름 입력 영역 -->
+    <div id="nameInputs" class="flex flex-wrap gap-2 mb-3"></div>
+    <!-- 미배치 이름표 -->
+    <div class="mb-1"><span class="text-[11px] font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
+    <div id="nameChipsUnassigned" class="flex flex-wrap gap-2 min-h-[36px] p-2 rounded-lg bg-blue-50 border border-blue-100 mb-3"></div>
+    <!-- 배치 완료 이름표 -->
+    <div class="mb-1"><span class="text-[11px] font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
+    <div id="nameChipsAssigned" class="flex flex-wrap gap-2 min-h-[36px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
+    <!-- 매핑 현황 -->
+    <div id="mapStatus" class="mt-3 pt-3 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
+  </div>
+
+  <!-- 스케줄 테이블 -->
+  <div class="card p-4 overflow-x-auto" id="schWrap">
+    <div id="schOut"><p class="text-center text-[#94a3b8] py-12">🤖 자동 생성 버튼을 눌러 스케줄을 만드세요.</p></div>
+  </div>
+</section>
+
+<!-- ======================== TAB: 출결 ======================== -->
+<section id="p-att" class="tab-p hidden">
+  <div class="card p-5 mb-3">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div><h2 class="text-lg font-bold text-[#1e3a5f]">📝 출결 관리</h2></div>
+      <div class="flex items-center gap-3">
+        <div><label class="label">출근 기준</label><input type="time" id="attendBase" value="10:30" class="inp" style="width:120px" onchange="renderAtt()"></div>
+        <div class="pt-4"><button onclick="resetAtt()" class="btn btn-d text-xs py-1.5">↺ 초기화</button></div>
+      </div>
+    </div>
+  </div>
+  <div id="lateSummary" class="card p-4 mb-3 hidden border-l-4 border-l-red-400">
+    <h3 class="text-sm font-bold text-red-600 mb-2">⚠️ 지각자</h3>
+    <div id="lateList" class="space-y-1.5"></div>
+  </div>
+  <div class="card p-4"><div id="attList"></div></div>
+</section>
+
+<!-- ======================== TAB: 저장 ======================== -->
+<section id="p-save" class="tab-p hidden">
+  <div class="card p-5 mb-4">
+    <h2 class="text-lg font-bold text-[#1e3a5f] mb-1">💾 스케줄 저장 & 불러오기</h2>
+    <p class="text-xs text-[#64748b] mb-4">여러 개의 스케줄을 이름별로 저장하고, 언제든 불러올 수 있습니다.</p>
+    <div class="flex gap-2 flex-wrap items-end mb-4">
+      <div class="flex-1" style="min-width:180px">
+        <label class="label">저장 이름</label>
+        <input type="text" id="saveName" class="inp" placeholder="예: 3/21 금요일 스케줄">
+      </div>
+      <button onclick="saveSlot()" class="btn btn-p py-2.5 px-6">💾 저장하기</button>
+    </div>
+    <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 mb-2">
+      💡 자동 저장: 설정/이름/스케줄 변경 시 마지막 작업 상태가 자동 저장됩니다. 새로고침해도 유지됩니다.
+    </div>
+  </div>
+
+  <div class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="sec-title">📂 저장된 스케줄 목록</h3>
+      <span id="saveCount" class="text-xs text-[#94a3b8]"></span>
+    </div>
+    <div id="saveList"></div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast"><div></div></div>
+
+<script>
+// ===== CONSTANTS =====
+const CODES=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ','ㄸ','ㅃ','ㅆ','ㅉ','A','B','C','D','E','F','G'];
+const CL=['#1e3a5f','#b45309','#059669','#dc2626','#7c3aed','#0891b2','#c2410c','#be185d','#4d7c0f','#0d9488','#9f1239','#7e22ce'];
+
+// ===== STATE =====
+let S={
+  openH:11, closeH:18, restMin:120, restUnit:60, maxParts:2, fixedCount:7, restMode:'smart',
+  zones:[{name:'리셉션',color:CL[0],min:2},{name:'Fair Zone',color:CL[1],min:3},{name:'F&B',color:CL[2],min:2}],
+  staff:[],
+  nameMap:{},       // code → realName (set by drag-drop)
+  nameEntries:[],   // [{id, name}] - user's name list
+  nextNameId:0,
+  sch:null,
+  attend:{},
+};
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded',()=>{
+  buildTimeOpts(); bindTabs(); bindInputs();
+  const loaded=autoLoad();
+  if(!loaded){ rebuildStaff(); renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt(); }
+  renderSaveList();
+});
+
+// ===== TABS =====
+function bindTabs(){
+  document.querySelectorAll('#tabs .tab-btn').forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll('#tabs .tab-btn').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      document.querySelectorAll('.tab-p').forEach(x=>x.classList.add('hidden'));
+      document.getElementById('p-'+b.dataset.t).classList.remove('hidden');
+      if(b.dataset.t==='att')renderAtt();
+      if(b.dataset.t==='save')renderSaveList();
+    };
+  });
+}
+
+// ===== DISPLAY NAME =====
+function dn(code){return S.nameMap[code]||code;}
+function codeColor(code){const i=S.staff.findIndex(s=>s.code===code);return CL[(i>=0?i:0)%CL.length];}
+
+// ===== TIME =====
+function buildTimeOpts(){
+  const o=document.getElementById('selOpen'),c=document.getElementById('selClose');
+  for(let h=0;h<=23;h++){const t=`${String(h).padStart(2,'0')}:00`;
+    o.innerHTML+=`<option value="${h}" ${h===11?'selected':''}>${t}</option>`;
+    c.innerHTML+=`<option value="${h}" ${h===18?'selected':''}>${t}</option>`;}
+}
+function bindInputs(){
+  const u=()=>{
+    S.openH=+document.getElementById('selOpen').value;
+    S.closeH=+document.getElementById('selClose').value;
+    S.restMin=+document.getElementById('inpRest').value;
+    S.restUnit=+document.getElementById('inpRestUnit').value;
+    S.maxParts=+document.getElementById('inpMaxP').value;
+    S.fixedCount=+document.getElementById('inpFixed').value;
+    S.restMode=document.getElementById('selRestMode').value;
+    const schRM2=document.getElementById('schRestMode');if(schRM2)schRM2.value=S.restMode;
+    document.getElementById('lblHours').textContent=S.closeH-S.openH;
+    // rest mode description
+    const descs={smart:'AI가 공정하게 분산 배치합니다.',rotate:'매일 순번이 한 칸씩 밀립니다. (ㄱㄴㄷ→ㄴㄷㄹ→ㄷㄹㄱ)',push:'해당 타임 전체를 그룹 단위로 순환 밀어냅니다.'};
+    const descEl=document.getElementById('restModeDesc');if(descEl)descEl.textContent=descs[S.restMode]||'';
+    calcRestRec();autoSave();
+  };
+  ['selOpen','selClose','inpRest','inpRestUnit','inpMaxP','inpFixed','inpStaffCount'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.addEventListener('change',u);});
+  u();
+}
+function timeSlots(){const a=[];for(let h=S.openH;h<S.closeH;h++)a.push(`${String(h).padStart(2,'0')}:00`);return a;}
+
+// ===== REST RECOMMEND =====
+function calcRestRec(){
+  const totalH=S.closeH-S.openH;
+  const N=S.staff.length||+document.getElementById('inpStaffCount').value;
+  const spare=N-S.fixedCount;
+  const legalMin=Math.floor(totalH/4)*30;
+  const maxRestMin=spare>0?Math.floor((spare*totalH)/N)*60:0;
+  const rec=Math.max(legalMin,Math.floor(maxRestMin/5)*5);
+  const el=document.getElementById('restRecText');
+  if(el){
+    if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음 — 인원↑ 또는 상시↓</span>`;
+    else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정최소 ${legalMin}분, 여유${spare}명)`;
+  }
+  if(rec>0){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);}
+}
+
+function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
+function renderRestGrid(){
+  const w=document.getElementById('restGrid');w.innerHTML='';
+  S.staff.forEach((s,i)=>{const col=CL[i%CL.length];
+    w.innerHTML+=`<div class="flex items-center gap-2 card-s p-2 rounded-lg">
+      <span class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-bold text-white" style="background:${col}">${s.code}</span>
+      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-xs py-1 text-center" style="width:60px" onchange="S.staff[${i}].restMin=+this.value">
+      <span class="text-[10px] text-[#94a3b8]">분</span></div>`;
+  });
+}
+
+// ===== ZONES =====
+function renderZones(){
+  const w=document.getElementById('zoneList');w.innerHTML='';
+  S.zones.forEach((z,i)=>{
+    w.innerHTML+=`<div class="flex items-center gap-2 card-s p-3">
+      <span class="w-5 h-5 rounded-full" style="background:${z.color}"></span>
+      <input class="inp text-sm" style="flex:1" value="${z.name}" onchange="S.zones[${i}].name=this.value">
+      <div class="flex items-center gap-1"><label class="text-[10px] text-[#64748b]">최소</label>
+        <input type="number" class="inp text-xs text-center" style="width:50px" value="${z.min}" min="0" onchange="S.zones[${i}].min=+this.value"></div>
+      <input type="color" value="${z.color}" class="w-7 h-7 rounded cursor-pointer border-0" onchange="S.zones[${i}].color=this.value;renderZones()">
+      <button onclick="rmZone(${i})" class="btn btn-d text-xs py-1 px-2">✕</button></div>`;
+  });
+}
+function addZone(){S.zones.push({name:`구역${S.zones.length+1}`,color:CL[S.zones.length%CL.length],min:1});renderZones();autoSave();}
+function rmZone(i){S.zones.splice(i,1);renderZones();autoSave();}
+
+// ===== STAFF =====
+function rebuildStaff(){
+  const n=+document.getElementById('inpStaffCount').value;
+  const old=S.staff.slice();S.staff=[];
+  for(let i=0;i<n;i++){const code=CODES[i]||`S${i+1}`;const prev=old[i];
+    S.staff.push({code,type:prev?prev.type:(i<S.fixedCount?'fixed':'rotate'),restMin:prev?prev.restMin:S.restMin});
+    if(!S.nameMap[code])S.nameMap[code]='';}
+  renderStaff();renderRestGrid();initAtt();calcRestRec();autoSave();
+}
+function renderStaff(){
+  const w=document.getElementById('staffList');w.innerHTML='';
+  S.staff.forEach((s,i)=>{const col=CL[i%CL.length];
+    w.innerHTML+=`<div class="flex items-center gap-2 card-s p-2">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-white" style="background:${col}">${s.code}</div>
+      <span class="text-sm text-[#1e3a5f] flex-1 font-medium">${s.code}</span>
+      <select class="inp text-xs py-1" style="width:70px" onchange="S.staff[${i}].type=this.value">
+        <option value="fixed" ${s.type==='fixed'?'selected':''}>고정</option>
+        <option value="rotate" ${s.type==='rotate'?'selected':''}>교대</option></select></div>`;
+  });
+}
+
+// ===== NAME BANK =====
+function addNameEntry(){
+  S.nameEntries.push({id:S.nextNameId++,name:''});
+  renderNameBank();autoSave();
+  // focus last input
+  setTimeout(()=>{const inputs=document.querySelectorAll('#nameInputs input');if(inputs.length)inputs[inputs.length-1].focus();},50);
+}
+function removeNameEntry(id){
+  // unmap if this name was used
+  const entry=S.nameEntries.find(e=>e.id===id);
+  if(entry&&entry.name){
+    for(const code in S.nameMap){if(S.nameMap[code]===entry.name)S.nameMap[code]='';}
+  }
+  S.nameEntries=S.nameEntries.filter(e=>e.id!==id);
+  renderNameBank();renderSchTags();autoSave();
+}
+function clearAllNames(){
+  S.nameEntries=[];S.nameMap={};S.staff.forEach(s=>S.nameMap[s.code]='');
+  renderNameBank();renderSchTags();autoSave();toast('🗑️','이름 초기화');
+}
+function updateNameEntry(id,val){
+  const entry=S.nameEntries.find(e=>e.id===id);
+  if(!entry)return;
+  // if old name was mapped, unmap it
+  const oldName=entry.name;
+  if(oldName){for(const code in S.nameMap){if(S.nameMap[code]===oldName)S.nameMap[code]='';}}
+  entry.name=val;
+  renderNameChips();renderSchTags();renderMapStatus();autoSave();
+}
+
+function renderNameBank(){
+  renderNameInputs();renderNameChips();renderMapStatus();
+}
+function renderNameInputs(){
+  const w=document.getElementById('nameInputs');if(!w)return;w.innerHTML='';
+  S.nameEntries.forEach(e=>{
+    w.innerHTML+=`<div class="flex items-center gap-1">
+      <input class="inp text-sm py-1.5" style="width:100px" placeholder="이름 입력" value="${e.name}" oninput="updateNameEntry(${e.id},this.value)">
+      <button onclick="removeNameEntry(${e.id})" class="text-red-400 hover:text-red-600 text-sm px-1">✕</button></div>`;
+  });
+}
+function renderNameChips(){
+  const wU=document.getElementById('nameChipsUnassigned');
+  const wA=document.getElementById('nameChipsAssigned');
+  if(!wU||!wA)return;
+  wU.innerHTML='';wA.innerHTML='';
+  const usedNames=Object.values(S.nameMap).filter(v=>v);
+  const unassigned=[];const assigned=[];
+  S.nameEntries.forEach((e,i)=>{
+    if(!e.name)return;
+    const used=usedNames.includes(e.name);
+    const col=CL[i%CL.length];
+    const mappedCode=used?Object.keys(S.nameMap).find(c=>S.nameMap[c]===e.name):'';
+    const html=`<div class="name-chip ${used?'used':''}" draggable="${used?'false':'true'}" data-name="${e.name}"
+      style="background:${used?'#d1fae5':col};color:${used?'#065f46':'#fff'};border:${used?'1px solid #a7f3d0':'none'}">${e.name}${used?` (${mappedCode})`:''}</div>`;
+    if(used)assigned.push(html);else unassigned.push(html);
+  });
+  wU.innerHTML=unassigned.length?unassigned.join(''):'<span class="text-[11px] text-[#94a3b8]">없음</span>';
+  wA.innerHTML=assigned.length?assigned.join(''):'<span class="text-[11px] text-[#94a3b8]">없음</span>';
+  // update labels with counts
+  const ul=document.getElementById('unassignedLabel');if(ul)ul.textContent=`📌 미배치 (${unassigned.length})`;
+  const al=document.getElementById('assignedLabel');if(al)al.textContent=`✅ 배치 완료 (${assigned.length})`;
+  // bind drag on unassigned chips
+  wU.querySelectorAll('.name-chip[draggable="true"]').forEach(chip=>{
+    chip.addEventListener('dragstart',e=>{
+      e.dataTransfer.effectAllowed='copy';
+      e.dataTransfer.setData('text/name',chip.dataset.name);
+      chip.style.transform='scale(1.1)';chip.style.opacity='.6';
+    });
+    chip.addEventListener('dragend',()=>{chip.style.transform='';chip.style.opacity='';});
+  });
+}
+function renderMapStatus(){
+  const w=document.getElementById('mapStatus');if(!w)return;
+  const mapped=S.staff.filter(s=>S.nameMap[s.code]);
+  const total=S.staff.length;
+  if(!S.sch){w.innerHTML='';return;}
+  let h=`<b>${mapped.length}/${total}</b> 매핑 완료 `;
+  if(mapped.length>0){
+    h+=mapped.map(s=>{const col=codeColor(s.code);return`<span style="color:${col};font-weight:600">${s.code}→${S.nameMap[s.code]}</span>`;}).join(' · ');
+  }
+  if(mapped.length<total){
+    const unmapped=S.staff.filter(s=>!S.nameMap[s.code]).map(s=>s.code);
+    h+=` <span class="text-[#94a3b8]">| 미배정: ${unmapped.join(', ')}</span>`;
+  }
+  w.innerHTML=h;
+}
+
+// ===== SCHEDULE GENERATION =====
+function genSchedule(){
+  const ts=timeSlots();const T=ts.length;
+  if(T<2){toast('⚠️','운영시간 부족');return;}
+  const all=S.staff.map(s=>s.code);const N=all.length;
+  const totalMinReq=S.zones.reduce((s,z)=>s+z.min,0);
+  const maxRestPerSlot=Math.max(1,N-Math.max(totalMinReq,S.fixedCount));
+
+  const restPlan={};all.forEach(n=>restPlan[n]=[]);
+  const slotLoad=new Array(T).fill(0);
+
+  if(S.restMode==='rotate'){
+    // 순번 밀어내기: 1일차 ㄱㄴㄷㄹ → 2일차 ㄴㄷㄹㅁ (dayOffset으로 시뮬레이션)
+    // dayOffset = 오늘 날짜 기반으로 순번 결정
+    const dayOffset=new Date().getDate()%N;
+    const order=[];for(let i=0;i<N;i++)order.push(all[(i+dayOffset)%N]);
+    // 한 슬롯에 쉴 수 있는 인원
+    let cursor=0;
+    for(let si=0;si<T;si++){
+      let restThisSlot=0;
+      while(restThisSlot<maxRestPerSlot&&cursor<order.length){
+        const code=order[cursor%N];
+        const st=S.staff.find(s=>s.code===code);
+        const blocks=Math.round((st?.restMin||0)/S.restUnit);
+        if(restPlan[code].length<blocks){
+          restPlan[code].push(si);slotLoad[si]++;restThisSlot++;
+        }
+        cursor++;
+        if(cursor>=N*T)break;
+      }
+    }
+  }else if(S.restMode==='push'){
+    // 전체 밀어내기: 그룹 단위로 순환. 매 타임슬롯마다 다음 그룹이 쉼.
+    const dayOffset=new Date().getDate()%N;
+    // 각 사람의 필요 블록 수
+    const needs={};all.forEach(c=>{const st=S.staff.find(s=>s.code===c);needs[c]=Math.round((st?.restMin||0)/S.restUnit);});
+    // 그룹 생성: maxRestPerSlot 명씩 묶기
+    const order=[];for(let i=0;i<N;i++)order.push(all[(i+dayOffset)%N]);
+    const groups=[];
+    for(let i=0;i<N;i+=maxRestPerSlot)groups.push(order.slice(i,i+maxRestPerSlot));
+    // 각 슬롯에 그룹 순환 배정
+    let gi=0;
+    for(let si=0;si<T;si++){
+      const grp=groups[gi%groups.length];
+      for(const code of grp){
+        if(restPlan[code].length<needs[code]){
+          restPlan[code].push(si);slotLoad[si]++;
+        }
+      }
+      gi++;
+    }
+    // 부족한 블록 보충 (남은 슬롯에 배정)
+    for(const code of all){
+      while(restPlan[code].length<needs[code]){
+        let bestSi=-1,bestLoad=Infinity;
+        for(let si=0;si<T;si++){
+          if(restPlan[code].includes(si))continue;
+          if(slotLoad[si]<bestLoad&&N-(slotLoad[si]+1)>=S.fixedCount){bestLoad=slotLoad[si];bestSi=si;}
+        }
+        if(bestSi<0)break;
+        restPlan[code].push(bestSi);slotLoad[bestSi]++;
+      }
+      restPlan[code].sort((a,b)=>a-b);
+    }
+  }else{
+    // smart (AI 분산) - 기존 로직
+    for(const st of S.staff){
+      const code=st.code;const blocks=Math.round(st.restMin/S.restUnit);
+      if(blocks<=0)continue;
+      if(blocks>=T){toast('⚠️',`${code} 휴게>운영시간`);return;}
+      const assigned=[];
+      for(let att=0;att<300&&assigned.length<blocks;att++){
+        let best=-1,bestSc=-1e9;
+        for(let i=0;i<T;i++){
+          if(assigned.includes(i)||slotLoad[i]>=maxRestPerSlot)continue;
+          if(N-(slotLoad[i]+1)<S.fixedCount)continue;
+          let sc=0;if(!assigned.some(a=>Math.abs(a-i)===1))sc+=15;
+          if(assigned.length>0)sc+=Math.min(...assigned.map(a=>Math.abs(a-i)))*3;
+          sc-=slotLoad[i]*4;sc-=Math.abs(i-T/2)*0.3;sc+=Math.random()*2;
+          if(sc>bestSc){bestSc=sc;best=i;}
+        }
+        if(best>=0){assigned.push(best);slotLoad[best]++;}else break;
+      }
+      restPlan[code]=assigned.sort((a,b)=>a-b);
+    }
+  }
+
+  const schedule=[];
+  const rpt={};S.staff.filter(s=>s.type==='rotate').forEach(s=>rpt[s.code]=new Set());
+  for(let si=0;si<T;si++){
+    const time=ts[si];const resting=all.filter(n=>restPlan[n].includes(si));const working=all.filter(n=>!restPlan[n].includes(si));
+    const pa={};S.zones.forEach(z=>pa[z.name]=[]);
+    const unpl=[...working];
+    for(const z of S.zones){while(pa[z.name].length<z.min&&unpl.length){
+      let pick=-1;for(let u=0;u<unpl.length;u++){if(rpt[unpl[u]]&&rpt[unpl[u]].size>=S.maxParts&&!rpt[unpl[u]].has(z.name))continue;pick=u;break;}
+      if(pick<0&&unpl.length)pick=0;if(pick<0)break;const n=unpl.splice(pick,1)[0];pa[z.name].push(n);if(rpt[n])rpt[n].add(z.name);}}
+    const support=[];for(const n of unpl){let ok=false;for(const z of S.zones){const cap=z.min+2;if(pa[z.name].length<cap){if(rpt[n]&&rpt[n].size>=S.maxParts&&!rpt[n].has(z.name))continue;pa[z.name].push(n);if(rpt[n])rpt[n].add(z.name);ok=true;break;}}if(!ok)support.push(n);}
+    schedule.push({time,pa,rest:resting,support});
+  }
+  S.sch=schedule;
+
+  // 이름 은행 초기 슬롯 (인원수만큼)
+  if(!S.nameEntries.length){S.nameEntries=[];for(let i=0;i<S.staff.length;i++)S.nameEntries.push({id:S.nextNameId++,name:''});}
+
+  document.getElementById('nameBankWrap').classList.remove('hidden');
+  document.getElementById('dlPng').classList.remove('hidden');
+  document.getElementById('dlPdf').classList.remove('hidden');
+
+  renderSchTable();renderNameBank();validateRules();
+  autoSave();
+  toast('✅','스케줄 생성 완료! 위에서 이름을 입력하고 드래그하세요.');
+}
+
+// ===== SCHEDULE TABLE =====
+function renderSchTable(){
+  if(!S.sch)return;const w=document.getElementById('schOut');const zn=S.zones.map(z=>z.name);
+  let h=`<table class="w-full border-collapse min-w-[500px]" id="schTable"><thead><tr>
+    <th class="sch-cell text-left text-xs text-[#64748b] font-bold sticky left-0 bg-white z-10">시간</th>`;
+  zn.forEach((n,i)=>{h+=`<th class="sch-cell text-xs font-bold" style="color:${S.zones[i].color}">${n}</th>`;});
+  h+=`<th class="sch-cell text-xs text-orange-600 font-bold">☕ 휴게</th>
+    <th class="sch-cell text-xs text-emerald-600 font-bold">🤝 지원</th></tr></thead><tbody>`;
+
+  S.sch.forEach((sl,si)=>{
+    const nt=si<S.sch.length-1?S.sch[si+1].time:`${String(S.closeH).padStart(2,'0')}:00`;
+    h+=`<tr><td class="sch-cell text-sm font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10">${sl.time}~${nt}</td>`;
+    zn.forEach(n=>{const codes=sl.pa[n]||[];
+      h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#fff7ed','#c2410c','#fed7aa')).join('')||dash()}</td>`;
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#ecfdf5','#059669','#a7f3d0')).join('')||dash()}</td></tr>`;
+  });
+  h+=`</tbody></table>`;
+
+  // 요약
+  h+=`<div class="mt-5 p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0]"><h4 class="text-sm font-bold text-[#1e3a5f] mb-3">📊 요약</h4><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">`;
+  S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const col=CL[i%CL.length];
+    h+=`<div class="p-2.5 rounded-lg bg-white border" style="border-color:${col}20">
+      <div class="text-sm font-bold" style="color:${col}"><span data-dn="${s.code}">${dn(s.code)}</span></div>
+      <div class="text-[11px] text-[#64748b]">${s.type==='fixed'?'고정':'교대'} · ${wc}h · 휴게${rc*S.restUnit}분</div></div>`;});
+  h+=`</div></div>`;
+  w.innerHTML=h;
+  bindSchDnD();
+}
+
+function makeTag(code,si,from,bg,fg,border){
+  const mapped=!!S.nameMap[code];
+  const col=codeColor(code);
+  if(!bg){bg=col+'0d';fg=col;border=col+'25';}
+  const cls=mapped?'mapped':'unmapped';
+  return `<span class="sch-tag ${cls}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
+    style="background:${bg};color:${fg};border-color:${border}" data-dn="${code}">${dn(code)}</span>`;
+}
+function dash(){return '<span class="text-gray-300 text-xs" style="pointer-events:none">-</span>';}
+
+// Refresh only text content (no re-render)
+function renderSchTags(){
+  document.querySelectorAll('[data-dn]').forEach(el=>{el.textContent=dn(el.dataset.dn);});
+  renderMapStatus();
+}
+
+// ===== DRAG & DROP =====
+function bindSchDnD(){
+
+  // 1) Name chip → schedule code tag = GLOBAL MAPPING
+  document.querySelectorAll('#schTable .sch-tag').forEach(tag=>{
+    tag.addEventListener('dragover',e=>{
+      if(e.dataTransfer.types.includes('text/name')){e.preventDefault();e.dataTransfer.dropEffect='copy';
+        tag.style.transform='scale(1.15)';tag.style.boxShadow='0 0 12px rgba(30,58,95,.3)';}
+    });
+    tag.addEventListener('dragleave',()=>{tag.style.transform='';tag.style.boxShadow='';});
+    tag.addEventListener('drop',e=>{
+      tag.style.transform='';tag.style.boxShadow='';
+      const name=e.dataTransfer.getData('text/name');
+      if(!name)return;e.preventDefault();
+      const targetCode=tag.dataset.code;
+      // unmap any code that had this name
+      for(const c in S.nameMap){if(S.nameMap[c]===name)S.nameMap[c]='';}
+      S.nameMap[targetCode]=name;
+      renderSchTags();renderNameChips();renderMapStatus();autoSave();
+      toast('✅',`${targetCode} → "${name}" 전체 적용`);
+    });
+
+    // 2) Tag → cell = same-time reorder
+    tag.addEventListener('dragstart',e=>{
+      if(e.dataTransfer.types.includes('text/name'))return;
+      e.dataTransfer.effectAllowed='move';
+      e.dataTransfer.setData('text/move',JSON.stringify({code:tag.dataset.code,si:+tag.dataset.si,from:tag.dataset.from}));
+      tag.classList.add('dragging-tag');
+    });
+    tag.addEventListener('dragend',()=>tag.classList.remove('dragging-tag'));
+  });
+
+  // 3) Cell drop for reorder
+  document.querySelectorAll('.sch-drop').forEach(cell=>{
+    cell.addEventListener('dragover',e=>{
+      if(e.dataTransfer.types.includes('text/move')){e.preventDefault();e.dataTransfer.dropEffect='move';cell.classList.add('drop-over');}
+    });
+    cell.addEventListener('dragleave',()=>cell.classList.remove('drop-over'));
+    cell.addEventListener('drop',e=>{
+      cell.classList.remove('drop-over');
+      const raw=e.dataTransfer.getData('text/move');if(!raw)return;e.preventDefault();
+      const{code,si:fromSi,from}=JSON.parse(raw);
+      const toSi=+cell.dataset.si;const toCol=cell.dataset.col;
+      if(fromSi!==toSi){toast('⚠️','같은 시간대 내에서만 이동');return;}
+      if(from===toCol)return;
+      const sl=S.sch[toSi];
+      if(from==='__rest__')sl.rest=sl.rest.filter(c=>c!==code);
+      else if(from==='__support__')sl.support=sl.support.filter(c=>c!==code);
+      else if(sl.pa[from])sl.pa[from]=sl.pa[from].filter(c=>c!==code);
+      if(toCol==='__rest__')sl.rest.push(code);
+      else if(toCol==='__support__')sl.support.push(code);
+      else if(sl.pa[toCol])sl.pa[toCol].push(code);
+      renderSchTable();renderNameBank();autoSave();
+      toast('✅',`${dn(code)} 이동 완료`);
+    });
+  });
+}
+
+// ===== DOWNLOAD =====
+async function downloadPNG(){toast('📸','생성 중...');const c=await html2canvas(document.getElementById('schWrap'),{backgroundColor:'#fff',scale:2});const a=document.createElement('a');a.download=`스케줄_${new Date().toISOString().slice(0,10)}.png`;a.href=c.toDataURL();a.click();toast('✅','PNG 완료');}
+async function downloadPDF(){toast('📄','생성 중...');const c=await html2canvas(document.getElementById('schWrap'),{backgroundColor:'#fff',scale:2});const d=c.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:c.width>c.height?'l':'p',unit:'px',format:[c.width,c.height]});pdf.addImage(d,'PNG',0,0,c.width,c.height);pdf.save(`스케줄_${new Date().toISOString().slice(0,10)}.pdf`);toast('✅','PDF 완료');}
+
+// ===== RULES =====
+function validateRules(){
+  if(!S.sch)return;
+  const rules=[
+    {name:'상시 인원 유지',ok:S.sch.every(sl=>Object.values(sl.pa).flat().length>=S.fixedCount)},
+    {name:'정각 단위',ok:S.sch.every(s=>/^\d{2}:00$/.test(s.time))},
+    {name:'개인별 휴게 보장',ok:S.staff.every(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc*S.restUnit===s.restMin;})},
+    {name:'연속 휴게 방지',ok:S.staff.every(s=>{let c=0;for(const sl of S.sch){if(sl.rest.includes(s.code)){c++;if(c>=3)return false;}else c=0;}return true;})},
+    {name:'교대 파트 제한',ok:S.staff.filter(s=>s.type==='rotate').every(s=>{const p=new Set();S.sch.forEach(sl=>{for(const[k,a]of Object.entries(sl.pa))if(a.includes(s.code))p.add(k);});return p.size<=S.maxParts;})},
+    {name:'근무/휴게 분리',ok:S.sch.every(sl=>{const w=Object.values(sl.pa).flat();return!w.some(n=>sl.rest.includes(n));})},
+  ];
+  const g=document.getElementById('ruleGrid');g.innerHTML='';
+  rules.forEach((r,i)=>{g.innerHTML+=`<div class="flex items-center gap-2 p-2.5 rounded-lg ${r.ok?'bg-green-50 border border-green-200':'bg-red-50 border border-red-200'}"><span>${r.ok?'✅':'⚠️'}</span><span class="text-xs font-medium ${r.ok?'text-green-700':'text-red-700'}">${i+1}. ${r.name}</span></div>`;});
+  document.getElementById('ruleBox').classList.remove('hidden');
+}
+
+// ===== ATTENDANCE =====
+function initAtt(){S.staff.forEach(s=>{if(!S.attend[s.code])S.attend[s.code]={in:false,time:null,mod:false};});}
+function resetAtt(){S.attend={};initAtt();renderAtt();autoSave();toast('↺','출결 초기화');}
+function checkIn(code){const now=new Date();S.attend[code]={in:true,time:`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,mod:false};renderAtt();autoSave();toast('✅',`${dn(code)} 출근`);}
+function editAtt(code){const cur=S.attend[code]?.time||'';const v=prompt(`${dn(code)} 출근 시간 (HH:MM):`,cur);if(v&&/^\d{2}:\d{2}$/.test(v)){S.attend[code]={in:true,time:v,mod:true};renderAtt();autoSave();}}
+function cancelIn(code){S.attend[code]={in:false,time:null,mod:false};renderAtt();autoSave();}
+function lateMin(t,b){if(!t)return 0;const[ah,am]=t.split(':').map(Number);const[bh,bm]=b.split(':').map(Number);return(ah*60+am)-(bh*60+bm);}
+function renderAtt(){
+  const base=document.getElementById('attendBase').value||'10:30';
+  const lates=S.staff.filter(s=>{const a=S.attend[s.code];return a&&a.in&&lateMin(a.time,base)>0;});
+  const ls=document.getElementById('lateSummary');const ll=document.getElementById('lateList');
+  if(lates.length){ls.classList.remove('hidden');ll.innerHTML='';
+    lates.forEach(s=>{const a=S.attend[s.code];const m=lateMin(a.time,base);const col=codeColor(s.code);
+      ll.innerHTML+=`<div class="flex items-center justify-between card-s p-2.5">
+        <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-white" style="background:${col}">${s.code}</div>
+        <span class="text-sm font-bold">${dn(s.code)}</span><span class="late-badge">지각 ${m}분</span></div>
+        <span class="text-xs text-[#64748b]">${a.time}</span></div>`;});
+  }else ls.classList.add('hidden');
+  const w=document.getElementById('attList');
+  let h=`<table class="w-full"><thead><tr><th class="sch-cell text-left text-xs text-[#64748b]">이름</th><th class="sch-cell text-center text-xs text-[#64748b]">상태</th><th class="sch-cell text-center text-xs text-[#64748b]">시간</th><th class="sch-cell text-center text-xs text-[#64748b]">지각</th><th class="sch-cell text-center text-xs text-[#64748b]">관리</th></tr></thead><tbody>`;
+  S.staff.forEach((s,i)=>{const a=S.attend[s.code]||{in:false};const col=CL[i%CL.length];const late=a.in&&lateMin(a.time,base)>0;const lm=a.in?lateMin(a.time,base):0;
+    h+=`<tr class="hover:bg-slate-50">
+      <td class="sch-cell text-left"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white" style="background:${col}">${s.code}</div><span class="text-sm font-medium">${dn(s.code)}</span>${a.mod?'<span class="text-[9px] text-amber-600">(수정)</span>':''}</div></td>
+      <td class="sch-cell text-center">${a.in?'<span class="ontime-badge">출근</span>':'<span class="text-[#94a3b8] text-xs">미출근</span>'}</td>
+      <td class="sch-cell text-center font-mono text-sm">${a.time||'--:--'}</td>
+      <td class="sch-cell text-center">${a.in?(late?`<span class="late-badge">+${lm}분</span>`:'<span class="ontime-badge">정시</span>'):'-'}</td>
+      <td class="sch-cell text-center"><div class="flex justify-center gap-1">
+        ${!a.in?`<button onclick="checkIn('${s.code}')" class="btn btn-g text-[10px] py-1 px-2">✓ 출근</button>`:''}
+        ${a.in?`<button onclick="editAtt('${s.code}')" class="btn btn-w text-[10px] py-1 px-2">✏️</button><button onclick="cancelIn('${s.code}')" class="btn btn-d text-[10px] py-1 px-2">취소</button>`:''}
+      </div></td></tr>`;});
+  h+=`</tbody></table>`;
+  const total=S.staff.length;const chk=S.staff.filter(s=>S.attend[s.code]?.in).length;
+  h+=`<div class="mt-4 p-3 rounded-xl card-s flex items-center justify-around flex-wrap gap-3">
+    <div class="text-center"><div class="text-xl font-bold text-[#1e3a5f]">${total}</div><div class="text-[10px] text-[#64748b]">전체</div></div>
+    <div class="text-center"><div class="text-xl font-bold text-emerald-600">${chk}</div><div class="text-[10px] text-[#64748b]">출근</div></div>
+    <div class="text-center"><div class="text-xl font-bold text-[#94a3b8]">${total-chk}</div><div class="text-[10px] text-[#64748b]">미출근</div></div>
+    <div class="text-center"><div class="text-xl font-bold text-red-600">${lates.length}</div><div class="text-[10px] text-[#64748b]">지각</div></div></div>`;
+  w.innerHTML=h;
+}
+
+// ===== TOAST =====
+function toast(icon,msg){const t=document.getElementById('toast');t.innerHTML=`<div>${icon} ${msg}</div>`;t.className='show';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2500);}
+
+// ===== SAVE / LOAD =====
+const LS_AUTO='spaceSch_auto';
+const LS_SLOTS='spaceSch_slots';
+
+function getSerializableState(){
+  return {
+    openH:S.openH, closeH:S.closeH, restMin:S.restMin, restUnit:S.restUnit,
+    maxParts:S.maxParts, fixedCount:S.fixedCount, restMode:S.restMode,
+    zones:S.zones, staff:S.staff, nameMap:S.nameMap,
+    nameEntries:S.nameEntries, nextNameId:S.nextNameId,
+    sch:S.sch, attend:S.attend
+  };
+}
+
+function autoSave(){
+  try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
+}
+
+function autoLoad(){
+  try{
+    const raw=localStorage.getItem(LS_AUTO);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    return applyState(d);
+  }catch(e){return false;}
+}
+
+function applyState(d){
+  if(!d||!d.zones)return false;
+  S.openH=d.openH??11; S.closeH=d.closeH??18;
+  S.restMin=d.restMin??120; S.restUnit=d.restUnit??60;
+  S.maxParts=d.maxParts??2; S.fixedCount=d.fixedCount??7;
+  S.restMode=d.restMode||'smart';
+  S.zones=d.zones||[]; S.staff=d.staff||[];
+  S.nameMap=d.nameMap||{}; S.nameEntries=d.nameEntries||[];
+  S.nextNameId=d.nextNameId||0; S.sch=d.sch||null;
+  S.attend=d.attend||{};
+  // sync UI inputs
+  document.getElementById('selOpen').value=S.openH;
+  document.getElementById('selClose').value=S.closeH;
+  document.getElementById('inpRest').value=S.restMin;
+  document.getElementById('inpRestUnit').value=S.restUnit;
+  document.getElementById('inpMaxP').value=S.maxParts;
+  document.getElementById('inpFixed').value=S.fixedCount;
+  document.getElementById('inpStaffCount').value=S.staff.length||10;
+  document.getElementById('selRestMode').value=S.restMode;
+  const schRM=document.getElementById('schRestMode');if(schRM)schRM.value=S.restMode;
+  document.getElementById('lblHours').textContent=S.closeH-S.openH;
+  renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt();
+  if(S.sch){
+    document.getElementById('nameBankWrap').classList.remove('hidden');
+    document.getElementById('dlPng').classList.remove('hidden');
+    document.getElementById('dlPdf').classList.remove('hidden');
+    renderSchTable(); renderNameBank(); validateRules();
+  }
+  return true;
+}
+
+// Named save slots
+function getSaveSlots(){
+  try{return JSON.parse(localStorage.getItem(LS_SLOTS)||'[]');}catch(e){return[];}
+}
+function setSaveSlots(arr){
+  try{localStorage.setItem(LS_SLOTS,JSON.stringify(arr));}catch(e){}
+}
+
+function saveSlot(){
+  const nameEl=document.getElementById('saveName');
+  let name=(nameEl.value||'').trim();
+  if(!name){
+    const now=new Date();
+    name=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 스케줄`;
+  }
+  const slots=getSaveSlots();
+  // check duplicate name
+  const existing=slots.findIndex(s=>s.name===name);
+  if(existing>=0){
+    if(!confirm(`"${name}" 이름의 저장이 이미 있습니다. 덮어쓸까요?`))return;
+    slots[existing]={name,date:new Date().toISOString(),data:getSerializableState()};
+  }else{
+    slots.unshift({name,date:new Date().toISOString(),data:getSerializableState()});
+  }
+  setSaveSlots(slots);
+  nameEl.value='';
+  renderSaveList();
+  toast('💾',`"${name}" 저장 완료`);
+}
+
+function loadSlot(idx){
+  const slots=getSaveSlots();
+  if(!slots[idx])return;
+  if(!confirm(`"${slots[idx].name}"을(를) 불러올까요?\n현재 작업은 자동 저장되어 있습니다.`))return;
+  autoSave(); // save current first
+  applyState(slots[idx].data);
+  autoSave();
+  toast('📂',`"${slots[idx].name}" 불러오기 완료`);
+  // switch to schedule tab if schedule exists
+  if(S.sch){
+    document.querySelectorAll('#tabs .tab-btn').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.tab-p').forEach(x=>x.classList.add('hidden'));
+    document.querySelector('[data-t="sch"]').classList.add('on');
+    document.getElementById('p-sch').classList.remove('hidden');
+  }
+}
+
+function deleteSlot(idx){
+  const slots=getSaveSlots();
+  if(!slots[idx])return;
+  if(!confirm(`"${slots[idx].name}"을(를) 삭제할까요?`))return;
+  slots.splice(idx,1);
+  setSaveSlots(slots);
+  renderSaveList();
+  toast('🗑️','삭제 완료');
+}
+
+function renameSlot(idx){
+  const slots=getSaveSlots();
+  if(!slots[idx])return;
+  const newName=prompt('새 이름:',slots[idx].name);
+  if(!newName||!newName.trim())return;
+  slots[idx].name=newName.trim();
+  setSaveSlots(slots);
+  renderSaveList();
+  toast('✏️','이름 변경 완료');
+}
+
+function renderSaveList(){
+  const slots=getSaveSlots();
+  const w=document.getElementById('saveList');
+  const cnt=document.getElementById('saveCount');
+  if(cnt)cnt.textContent=`${slots.length}개 저장됨`;
+  if(!slots.length){w.innerHTML='<p class="text-center text-[#94a3b8] py-8">저장된 스케줄이 없습니다.</p>';return;}
+  let h='';
+  slots.forEach((sl,i)=>{
+    const d=new Date(sl.date);
+    const dateStr=`${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const hasSch=!!sl.data?.sch;
+    const staffN=sl.data?.staff?.length||0;
+    const zoneN=sl.data?.zones?.length||0;
+    const mappedN=sl.data?.nameMap?Object.values(sl.data.nameMap).filter(v=>v).length:0;
+    h+=`<div class="card-s p-4 mb-2 flex items-center justify-between flex-wrap gap-3">
+      <div class="flex-1" style="min-width:180px">
+        <div class="text-sm font-bold text-[#1e3a5f]">${sl.name}</div>
+        <div class="text-[11px] text-[#94a3b8] mt-1">
+          ${dateStr} · ${staffN}명 · ${zoneN}구역 · 매핑 ${mappedN}/${staffN}
+          ${hasSch?'<span class="text-emerald-600 font-bold"> · 스케줄 있음</span>':'<span class="text-amber-600"> · 스케줄 없음</span>'}
+        </div>
+      </div>
+      <div class="flex gap-1.5 flex-wrap">
+        <button onclick="loadSlot(${i})" class="btn btn-p text-[11px] py-1.5 px-3">📂 불러오기</button>
+        <button onclick="renameSlot(${i})" class="btn btn-w text-[11px] py-1.5 px-3">✏️</button>
+        <button onclick="deleteSlot(${i})" class="btn btn-d text-[11px] py-1.5 px-3">🗑️</button>
+      </div>
+    </div>`;
+  });
+  w.innerHTML=h;
+}
+
+// ===== PWA =====
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
