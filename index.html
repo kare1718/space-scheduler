@@ -383,7 +383,7 @@ function calcRestRec(){
     if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음 — 인원↑ 또는 상시↓</span>`;
     else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정최소 ${legalMin}분, 여유${spare}명)`;
   }
-  if(rec>0){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);}
+  if(rec>0&&_initDone){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);}
 }
 
 function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
@@ -848,10 +848,18 @@ function applyState(d){
   document.getElementById('inpRestUnit').value=S.restUnit;
   document.getElementById('inpMaxP').value=S.maxParts;
   document.getElementById('inpFixed').value=S.fixedCount;
-  document.getElementById('inpStaffCount').value=S.staff.length||10;
   document.getElementById('selRestMode').value=S.restMode;
   const schRM=document.getElementById('schRestMode');if(schRM)schRM.value=S.restMode;
   document.getElementById('lblHours').textContent=S.closeH-S.openH;
+  // staff가 비어있으면 새로 생성
+  if(!S.staff.length){
+    const n=+document.getElementById('inpStaffCount').value||10;
+    document.getElementById('inpStaffCount').value=n;
+    for(let i=0;i<n;i++){const code=CODES[i]||`S${i+1}`;
+      S.staff.push({code,type:i<S.fixedCount?'fixed':'rotate',restMin:S.restMin});
+      if(!S.nameMap[code])S.nameMap[code]='';}
+  }
+  document.getElementById('inpStaffCount').value=S.staff.length;
   renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt();
   if(S.sch){
     document.getElementById('nameBankWrap').classList.remove('hidden');
