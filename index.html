@@ -666,7 +666,7 @@ function renderSchTable(){
     h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10 text-center" style="font-size:14px">${sl.time}~${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
-    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#c2410c')).join('')||dash()}</td>`;
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#9a3412')).join('')||dash()}</td>`;
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#d1fae5','#059669')).join('')}
       <input type="text" class="inp text-[9px] py-0 mt-1" style="width:45px;padding:2px 3px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
@@ -687,10 +687,10 @@ function makeTag(code,si,from,bg,fg){
   const pastel=PASTEL[(idx>=0?idx:0)%PASTEL.length];
   if(!bg){
     if(mapped){bg=pastel;fg=col;}
-    else{bg='transparent';fg='#94a3b8';}
+    else{bg='#f8fafc';fg='#94a3b8';}
   }
   return `<span class="sch-tag ${mapped?'mapped':'unmapped'}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
-    style="background:${bg};color:${fg}${!mapped&&!arguments[3]?';border:1px dashed #cbd5e1!important':''}" data-dn="${code}">${dn(code)}</span>`;
+    style="background:${bg};color:${fg}${!mapped?';border:1px dashed #e2e8f0!important':''}" data-dn="${code}">${dn(code)}</span>`;
 }
 function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
 
@@ -712,9 +712,9 @@ function renderSchTags(){
     const pastel=PASTEL[(idx>=0?idx:0)%PASTEL.length];
     el.textContent=dn(code);
     el.className='sch-tag '+(mapped?'mapped':'unmapped');
-    if(el.dataset.from==='__rest__'){el.style.background=mapped?'#ffedd5':'transparent';el.style.color=mapped?'#c2410c':'#94a3b8';el.style.border=mapped?'none':'1px dashed #cbd5e1';}
-    else if(el.dataset.from==='__support__'){el.style.background=mapped?'#d1fae5':'transparent';el.style.color=mapped?'#059669':'#94a3b8';el.style.border=mapped?'none':'1px dashed #cbd5e1';}
-    else{el.style.background=mapped?pastel:'transparent';el.style.color=mapped?col:'#94a3b8';el.style.border=mapped?'none':'1px dashed #cbd5e1';}
+    if(el.dataset.from==='__rest__'){el.style.background=mapped?'#ffedd5':'#f8fafc';el.style.color=mapped?'#9a3412':'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
+    else if(el.dataset.from==='__support__'){el.style.background=mapped?'#d1fae5':'#f8fafc';el.style.color=mapped?'#065f46':'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
+    else{el.style.background=mapped?pastel:'#f8fafc';el.style.color=mapped?col:'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
   });
   // 요약 영역 텍스트
   document.querySelectorAll('[data-dn]:not(.sch-tag)').forEach(el=>{el.textContent=dn(el.dataset.dn);});
@@ -811,26 +811,62 @@ function bindSchDnD(){
 }
 
 // ===== DOWNLOAD =====
+function prepareExport(){
+  const tbl=document.getElementById('schTable');if(!tbl)return;
+  tbl.style.tableLayout='fixed';tbl.style.borderCollapse='collapse';
+  // 모든 셀에 인라인 스타일 강제
+  tbl.querySelectorAll('th,td').forEach(cell=>{
+    cell.style.textAlign='center';cell.style.verticalAlign='middle';
+    cell.style.padding='6px 4px';cell.style.borderBottom='1px solid #e2e8f0';
+    cell.style.borderRight='1px solid #edf2f7';cell.style.fontSize='12px';
+  });
+  // 태그에 인라인 강제
+  tbl.querySelectorAll('.sch-tag').forEach(tag=>{
+    tag.style.display='inline-block';tag.style.textAlign='center';
+    tag.style.verticalAlign='middle';tag.style.lineHeight='1.4';
+    tag.style.margin='1px';tag.style.padding='2px 6px';
+    tag.style.borderRadius='4px';tag.style.fontSize='10px';
+    tag.style.whiteSpace='nowrap';
+  });
+  // 메모 입력 숨기기
+  tbl.querySelectorAll('input').forEach(inp=>inp.style.display='none');
+}
+function cleanupExport(){
+  const tbl=document.getElementById('schTable');if(!tbl)return;
+  tbl.style.tableLayout='';tbl.style.borderCollapse='';
+  tbl.querySelectorAll('th,td').forEach(cell=>{
+    cell.style.textAlign='';cell.style.verticalAlign='';
+    cell.style.padding='';cell.style.borderBottom='';
+    cell.style.borderRight='';cell.style.fontSize='';
+  });
+  tbl.querySelectorAll('.sch-tag').forEach(tag=>{
+    tag.style.display='';tag.style.textAlign='';
+    tag.style.verticalAlign='';tag.style.lineHeight='';
+    tag.style.margin='';tag.style.padding='';
+    tag.style.borderRadius='';tag.style.fontSize='';
+    tag.style.whiteSpace='';
+  });
+  tbl.querySelectorAll('input').forEach(inp=>inp.style.display='');
+}
 async function downloadPNG(){
   toast('📸','생성 중...');
   const wrap=document.getElementById('schWrap');
-  // 다운로드 시 테이블 너비 고정
-  const tbl=document.getElementById('schTable');
-  if(tbl)tbl.style.tableLayout='fixed';
+  prepareExport();
+  await new Promise(r=>setTimeout(r,100));
   const c=await html2canvas(wrap,{backgroundColor:'#fff',scale:2,useCORS:true,logging:false,
     width:wrap.scrollWidth,windowWidth:wrap.scrollWidth+40});
-  if(tbl)tbl.style.tableLayout='';
+  cleanupExport();
   const a=document.createElement('a');a.download=`스케줄_${new Date().toISOString().slice(0,10)}.png`;a.href=c.toDataURL();a.click();
   toast('✅','PNG 완료');
 }
 async function downloadPDF(){
   toast('📄','생성 중...');
   const wrap=document.getElementById('schWrap');
-  const tbl=document.getElementById('schTable');
-  if(tbl)tbl.style.tableLayout='fixed';
+  prepareExport();
+  await new Promise(r=>setTimeout(r,100));
   const c=await html2canvas(wrap,{backgroundColor:'#fff',scale:2,useCORS:true,logging:false,
     width:wrap.scrollWidth,windowWidth:wrap.scrollWidth+40});
-  if(tbl)tbl.style.tableLayout='';
+  cleanupExport();
   const d=c.toDataURL('image/png');const{jsPDF}=window.jspdf;
   const pdf=new jsPDF({orientation:c.width>c.height?'l':'p',unit:'px',format:[c.width,c.height]});
   pdf.addImage(d,'PNG',0,0,c.width,c.height);pdf.save(`스케줄_${new Date().toISOString().slice(0,10)}.pdf`);
