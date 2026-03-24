@@ -106,10 +106,10 @@ body{font-family:'PaperLogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
     </div>
     <div class="flex items-center gap-2">
       <nav class="flex gap-1" id="tabs">
-        <button class="tab-btn on" data-t="main">📋 스케줄</button>
-        <button class="tab-btn" data-t="att">📝 출결</button>
+        <button class="tab-btn on" data-t="main">📋 스케줄 생성</button>
+        <button class="tab-btn" data-t="att">📝 출결 확인</button>
       </nav>
-      <button onclick="quickSave()" class="btn btn-p text-xs py-2 px-3">💾</button>
+      <button onclick="quickSave()" class="btn btn-p text-xs py-2 px-3">💾 저장</button>
     </div>
   </div>
 </header>
@@ -914,9 +914,9 @@ function renderSaveList(){
       <div><div class="text-sm font-bold text-[#1e3a5f]">${sl.name}</div>
         <div class="text-[10px] text-[#94a3b8]">${ds} · ${sn}명 · 매핑 ${mn}/${sn}</div></div>
       <div class="flex gap-1">
-        <button onclick="loadSlot(${i})" class="btn btn-p text-[10px] py-1 px-2">📂</button>
-        <button onclick="renameSlot(${i})" class="btn btn-w text-[10px] py-1 px-2">✏️</button>
-        <button onclick="deleteSlot(${i})" class="btn btn-d text-[10px] py-1 px-2">🗑️</button>
+        <button onclick="loadSlot(${i})" class="btn btn-p text-xs py-1.5 px-3">📂 불러오기</button>
+        <button onclick="renameSlot(${i})" class="btn btn-w text-xs py-1.5 px-3">✏️ 이름변경</button>
+        <button onclick="deleteSlot(${i})" class="btn btn-d text-xs py-1.5 px-3">🗑️ 삭제</button>
       </div></div>`;
   });
   w.innerHTML=h;
