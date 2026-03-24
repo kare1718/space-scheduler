@@ -122,66 +122,68 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 <!-- ======================== TAB: 메인 (설정+스케줄+저장 통합) ======================== -->
 <section id="p-main" class="tab-p fade-up">
 
-  <!-- 설정 접기/펼치기 -->
+  <!-- 1) 저장 목록 (최상단) -->
+  <div class="card p-4 mb-3">
+    <div class="collapse-btn open" onclick="toggleSection('saveBody',this)">
+      <span class="arrow">▶</span>
+      <h3 class="sec-title text-sm">💾 저장 목록</h3>
+      <span id="saveCount" class="text-xs text-[#94a3b8] ml-auto"></span>
+    </div>
+    <div id="saveBody" class="mt-2">
+      <div class="flex gap-2 flex-wrap items-end mb-3">
+        <input type="text" id="saveName" class="inp" style="flex:1;min-width:140px" placeholder="저장 이름 (예: 3/21 금요일)">
+        <button onclick="saveSlot()" class="btn btn-p py-2 px-4 text-sm">💾 저장</button>
+      </div>
+      <div id="saveList"></div>
+    </div>
+  </div>
+
+  <!-- 2) 설정 접기/펼치기 -->
   <div class="card p-4 mb-3">
     <div class="collapse-btn open" onclick="toggleSection('setupBody',this)">
       <span class="arrow">▶</span>
       <h2 class="text-base font-bold text-[#1e3a5f]">⚙️ 설정</h2>
     </div>
     <div id="setupBody" class="mt-3">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-        <!-- 운영 시간 -->
-        <div class="card-s p-3">
-          <div class="grid grid-cols-2 gap-2 mb-2">
-            <div><label class="label">오픈</label><select id="selOpen" class="inp"></select></div>
-            <div><label class="label">마감</label><select id="selClose" class="inp"></select></div>
-          </div>
+      <!-- 운영시간 + 휴게 (한 줄) -->
+      <div class="card-s p-3 mb-3">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+          <div><label class="label">오픈</label><select id="selOpen" class="inp"></select></div>
+          <div><label class="label">마감</label><select id="selClose" class="inp"></select></div>
+          <div><label class="label">1인 휴게(분)</label><input type="number" id="inpRest" value="120" min="0" step="5" class="inp"></div>
+          <div><label class="label">휴게 단위(분)</label><input type="number" id="inpRestUnit" value="60" min="5" step="5" class="inp"></div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <div class="p-2 rounded-lg bg-blue-50 text-sm text-[#1e3a5f] text-center">총 <b id="lblHours">7</b>시간</div>
-        </div>
-        <!-- 휴게 -->
-        <div class="card-s p-3">
-          <div class="grid grid-cols-2 gap-2">
-            <div><label class="label">1인 휴게(분)</label><input type="number" id="inpRest" value="120" min="0" step="5" class="inp"></div>
-            <div><label class="label">휴게 단위(분)</label><input type="number" id="inpRestUnit" value="60" min="5" step="5" class="inp"></div>
-            <div><label class="label">교대 최대 파트</label><input type="number" id="inpMaxP" value="2" min="1" max="8" class="inp"></div>
-            <div><label class="label">상시 최소 인원</label><input type="number" id="inpFixed" value="7" min="0" class="inp"></div>
-          </div>
-          <div id="restRecommend" class="mt-2 p-2 rounded-lg bg-indigo-50 text-xs text-[#1e3a5f]">💡 추천: <span id="restRecText">-</span></div>
+          <div><label class="label">교대 최대 파트</label><input type="number" id="inpMaxP" value="2" min="1" max="8" class="inp"></div>
+          <div><label class="label">상시 최소 인원</label><input type="number" id="inpFixed" value="7" min="0" class="inp"></div>
+          <div id="restRecommend" class="p-2 rounded-lg bg-indigo-50 text-[11px] text-[#1e3a5f]">💡 <span id="restRecText">-</span></div>
         </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-        <!-- 구역 -->
-        <div class="card-s p-3">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-bold text-[#1e3a5f]">📍 구역</span>
-            <button onclick="addZone()" class="btn btn-p text-xs py-1 px-2">+ 추가</button>
-          </div>
-          <div id="zoneList" class="space-y-1.5"></div>
+      <!-- 구역 -->
+      <div class="card-s p-3 mb-3">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-bold text-[#1e3a5f]">📍 구역</span>
+          <button onclick="addZone()" class="btn btn-p text-xs py-1 px-2">+ 추가</button>
         </div>
-        <!-- 인원 -->
-        <div class="card-s p-3">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-bold text-[#1e3a5f]">👥 인원</span>
-            <div class="flex items-center gap-1">
-              <label class="label mb-0">총원</label>
-              <input type="number" id="inpStaffCount" value="10" min="1" max="50" class="inp" style="width:60px" onchange="rebuildStaff()">
-            </div>
-          </div>
-          <div id="staffList" class="space-y-1"></div>
-        </div>
+        <div id="zoneList" class="space-y-1.5"></div>
       </div>
-      <!-- 개인 휴게 -->
+      <!-- 인원 (휴게 통합) -->
       <div class="card-s p-3">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-bold text-[#1e3a5f]">⏰ 개인별 휴게</span>
-          <button onclick="applyGlobalRest()" class="btn btn-s text-xs py-1 px-2">일괄 적용</button>
+          <span class="text-sm font-bold text-[#1e3a5f]">👥 인원</span>
+          <div class="flex items-center gap-2">
+            <button onclick="applyGlobalRest()" class="btn btn-s text-[11px] py-1 px-2">휴게 일괄적용</button>
+            <label class="label mb-0">총원</label>
+            <input type="number" id="inpStaffCount" value="10" min="1" max="50" class="inp" style="width:60px" onchange="rebuildStaff()">
+          </div>
         </div>
-        <div id="restGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-1.5"></div>
+        <div id="staffList" class="space-y-1" style="max-height:420px;overflow-y:auto"></div>
       </div>
     </div>
   </div>
 
-  <!-- 스케줄 생성 바 -->
+  <!-- 3) 스케줄 생성 바 -->
   <div class="card p-4 mb-3">
     <div class="flex items-center justify-between flex-wrap gap-2">
       <div class="flex gap-2 items-center flex-wrap">
@@ -204,45 +206,35 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
     <div id="ruleGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-1"></div>
   </div>
 
-  <!-- 이름 목록 -->
-  <div id="nameBankWrap" class="card p-4 mb-3 hidden">
-    <div class="flex items-center justify-between mb-2">
-      <h3 class="sec-title text-sm">👥 이름 배치</h3>
-      <div class="flex gap-1">
-        <button onclick="addNameEntry()" class="btn btn-s text-xs py-1 px-2">+ 추가</button>
-        <button onclick="toggleBulkPaste()" class="btn btn-s text-xs py-1 px-2">📋 붙여넣기</button>
-        <button onclick="clearAllNames()" class="btn btn-d text-xs py-1 px-2">초기화</button>
+  <!-- 4) 이름배치(좌) + 스케줄(우) 3:7 비율 -->
+  <div class="flex flex-col lg:flex-row gap-3">
+    <!-- 이름 배치 (왼쪽 30%) -->
+    <div id="nameBankWrap" class="card p-4 hidden lg:w-[30%] flex-shrink-0">
+      <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+        <h3 class="sec-title text-sm">👥 이름 배치</h3>
+        <div class="flex gap-1">
+          <button onclick="addNameEntry()" class="btn btn-s text-[11px] py-1 px-2">+ 추가</button>
+          <button onclick="toggleBulkPaste()" class="btn btn-s text-[11px] py-1 px-2">📋 붙여넣기</button>
+          <button onclick="clearAllNames()" class="btn btn-d text-[11px] py-1 px-2">초기화</button>
+        </div>
       </div>
+      <p class="text-[11px] text-[#94a3b8] mb-2">이름표를 번호 위에 드래그 → 전체 교체 | 배치 완료 클릭 → 해제</p>
+      <div id="bulkPasteWrap" class="hidden mb-2">
+        <textarea id="bulkPasteArea" class="inp text-sm" rows="2" placeholder="이름 붙여넣기 (엑셀, 쉼표, 줄바꿈)"></textarea>
+        <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
+      </div>
+      <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-2"></div>
+      <div class="mb-1"><span class="text-xs font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
+      <div id="nameChipsUnassigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-blue-50 border border-blue-100 mb-2"></div>
+      <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
+      <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
+      <div id="mapStatus" class="mt-2 pt-2 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
     </div>
-    <p class="text-[11px] text-[#94a3b8] mb-2">이름표를 스케줄의 번호 위에 드래그 → 전체 교체 | 배치 완료된 이름 클릭 → 해제</p>
-    <div id="bulkPasteWrap" class="hidden mb-2">
-      <textarea id="bulkPasteArea" class="inp text-sm" rows="2" placeholder="이름을 붙여넣기 (엑셀, 쉼표, 줄바꿈 모두 가능)"></textarea>
-      <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
-    </div>
-    <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-2"></div>
-    <div class="mb-1"><span class="text-xs font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
-    <div id="nameChipsUnassigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-blue-50 border border-blue-100 mb-2"></div>
-    <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
-    <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
-    <div id="mapStatus" class="mt-2 pt-2 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
-  </div>
 
-  <!-- 스케줄 테이블 -->
-  <div class="card p-3 overflow-x-auto" id="schWrap">
-    <div id="schOut"><p class="text-center text-[#94a3b8] py-10">🤖 자동 생성 버튼을 눌러 스케줄을 만드세요.</p></div>
-  </div>
-
-  <!-- 저장 목록 -->
-  <div class="card p-4 mt-3">
-    <div class="flex items-center justify-between mb-2">
-      <h3 class="sec-title text-sm">💾 저장 목록</h3>
-      <span id="saveCount" class="text-xs text-[#94a3b8]"></span>
+    <!-- 스케줄 테이블 (오른쪽 70%) -->
+    <div class="card p-3 overflow-x-auto flex-1" id="schWrap">
+      <div id="schOut"><p class="text-center text-[#94a3b8] py-10">🤖 자동 생성 버튼을 눌러 스케줄을 만드세요.</p></div>
     </div>
-    <div class="flex gap-2 flex-wrap items-end mb-3">
-      <input type="text" id="saveName" class="inp" style="flex:1;min-width:140px" placeholder="저장 이름 (예: 3/21 금요일)">
-      <button onclick="saveSlot()" class="btn btn-p py-2 px-4 text-sm">💾 저장</button>
-    </div>
-    <div id="saveList"></div>
   </div>
 </section>
 
@@ -317,6 +309,7 @@ function bindTabs(){
   });
 }
 
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function dn(code){return S.nameMap[code]||code;}
 function codeColor(code){const i=S.staff.findIndex(s=>s.code===code);return CL[(i>=0?i:0)%CL.length];}
 
@@ -362,20 +355,12 @@ function calcRestRec(){
     if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음</span>`;
     else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정 ${legalMin}분, 여유 ${spare}명)`;
   }
-  if(rec>0&&_initDone){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);}
+  // 추천값만 표시, 사용자가 직접 수정한 값은 덮어쓰지 않음
 }
 
 function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
 
-function renderRestGrid(){
-  const w=document.getElementById('restGrid');w.innerHTML='';
-  S.staff.forEach((s,i)=>{const col=CL[i%CL.length];
-    w.innerHTML+=`<div class="flex items-center gap-2 card-s p-2.5 rounded-lg">
-      <span class="w-7 h-7 rounded flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</span>
-      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-base py-1.5 text-center" style="width:90px;min-width:90px" onchange="S.staff[${i}].restMin=+this.value">
-      <span class="text-sm text-[#94a3b8] flex-shrink-0">분</span></div>`;
-  });
-}
+function renderRestGrid(){/* 인원 목록에 통합됨 */}
 
 // ===== ZONES =====
 function renderZones(){
@@ -407,7 +392,9 @@ function renderStaff(){
     w.innerHTML+=`<div class="flex items-center gap-2 card-s p-1.5">
       <div class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</div>
       <span class="text-sm text-[#1e3a5f] flex-1 font-medium">${s.code}번</span>
-      <select class="inp text-xs py-1" style="width:65px" onchange="S.staff[${i}].type=this.value">
+      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-xs py-1 text-center" style="width:65px" onchange="S.staff[${i}].restMin=+this.value;autoSave()" title="휴게(분)">
+      <span class="text-[10px] text-[#94a3b8]">분</span>
+      <select class="inp text-xs py-1" style="width:60px" onchange="S.staff[${i}].type=this.value;autoSave()">
         <option value="fixed" ${s.type==='fixed'?'selected':''}>고정</option>
         <option value="rotate" ${s.type==='rotate'?'selected':''}>교대</option></select></div>`;
   });
@@ -661,7 +648,16 @@ function makeTag(code,si,from,bg,fg){
 function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
 
 function renderSchTags(){
-  document.querySelectorAll('[data-dn]').forEach(el=>{el.textContent=dn(el.dataset.dn);});
+  document.querySelectorAll('.sch-tag[data-dn]').forEach(el=>{
+    const code=el.dataset.dn;const mapped=!!S.nameMap[code];const col=codeColor(code);
+    el.textContent=dn(code);
+    el.className='sch-tag '+(mapped?'mapped':'unmapped');
+    if(el.dataset.from==='__rest__'){el.style.background='#fff7ed';el.style.color='#c2410c';}
+    else if(el.dataset.from==='__support__'){el.style.background='#ecfdf5';el.style.color='#059669';}
+    else{el.style.background=mapped?col:'#'+col.slice(1)+'22';el.style.color=mapped?'#fff':col;}
+  });
+  // 요약 영역 텍스트
+  document.querySelectorAll('[data-dn]:not(.sch-tag)').forEach(el=>{el.textContent=dn(el.dataset.dn);});
   renderMapStatus();
 }
 
