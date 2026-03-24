@@ -202,37 +202,43 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
     <div id="ruleGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-1"></div>
   </div>
 
-  <!-- 4) 이름배치(좌) + 스케줄(우) 3:7 비율 -->
-  <div class="flex flex-col lg:flex-row gap-3">
-    <!-- 이름 배치 (왼쪽 30%) -->
-    <div id="nameBankWrap" class="card p-4 hidden lg:w-[30%] flex-shrink-0">
-      <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
-        <h3 class="sec-title text-sm">👥 이름 배치</h3>
-        <div class="flex gap-1">
-          <button onclick="addNameEntry()" class="btn btn-s text-[11px] py-1 px-2">+ 추가</button>
-          <button onclick="toggleBulkPaste()" class="btn btn-s text-[11px] py-1 px-2">📋 붙여넣기</button>
-          <button onclick="clearAllNames()" class="btn btn-d text-[11px] py-1 px-2">초기화</button>
-        </div>
+  <!-- 4) 이름배치 + 미배치 + 요약 (가로 3등분) -->
+  <div id="nameBankWrap" class="card p-4 mb-3 hidden">
+    <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
+      <h3 class="sec-title text-sm">👥 이름 배치</h3>
+      <div class="flex gap-1">
+        <button onclick="autoAssignNames()" class="btn btn-g text-[11px] py-1 px-2">🤖 자동배치</button>
+        <button onclick="sortNames()" class="btn btn-s text-[11px] py-1 px-2">가나다순</button>
+        <button onclick="addNameEntry()" class="btn btn-s text-[11px] py-1 px-2">+ 추가</button>
+        <button onclick="toggleBulkPaste()" class="btn btn-s text-[11px] py-1 px-2">📋 붙여넣기</button>
+        <button onclick="clearAllNames()" class="btn btn-d text-[11px] py-1 px-2">초기화</button>
       </div>
-      <p class="text-[11px] text-[#94a3b8] mb-2">이름표를 번호 위에 드래그 → 전체 교체 | 배치 완료 클릭 → 해제</p>
-      <div id="bulkPasteWrap" class="hidden mb-2">
-        <textarea id="bulkPasteArea" class="inp text-sm" rows="2" placeholder="이름 붙여넣기 (엑셀, 쉼표, 줄바꿈)"></textarea>
-        <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
+    </div>
+    <div id="bulkPasteWrap" class="hidden mb-2">
+      <textarea id="bulkPasteArea" class="inp text-sm" rows="2" placeholder="이름 붙여넣기 (엑셀, 쉼표, 줄바꿈)" lang="ko"></textarea>
+      <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
+    </div>
+    <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-3"></div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <!-- 미배치 -->
+      <div>
+        <div class="mb-1"><span class="text-xs font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
+        <div id="nameChipsUnassigned" class="flex flex-wrap gap-1.5 min-h-[40px] p-2 rounded-lg bg-blue-50 border border-blue-100"></div>
       </div>
-      <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-2"></div>
-      <div class="mb-1"><span class="text-xs font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
-      <div id="nameChipsUnassigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-blue-50 border border-blue-100 mb-2"></div>
-      <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
-      <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
-      <div id="mapStatus" class="mt-2 pt-2 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
+      <!-- 배치 완료 -->
+      <div>
+        <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
+        <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[40px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
+      </div>
       <!-- 요약 -->
-      <div id="summaryWrap" class="mt-3 pt-3 border-t border-[#e2e8f0]"></div>
+      <div id="summaryWrap"></div>
     </div>
+    <div id="mapStatus" class="mt-2 pt-2 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
+  </div>
 
-    <!-- 스케줄 테이블 (오른쪽 70%) -->
-    <div class="card p-3 overflow-x-auto flex-1" id="schWrap">
-      <div id="schOut"><p class="text-center text-[#94a3b8] py-10">🤖 자동 생성 버튼을 눌러 스케줄을 만드세요.</p></div>
-    </div>
+  <!-- 5) 스케줄 테이블 -->
+  <div class="card p-3 overflow-x-auto" id="schWrap">
+    <div id="schOut"><p class="text-center text-[#94a3b8] py-10">🤖 자동 생성 버튼을 눌러 스케줄을 만드세요.</p></div>
   </div>
 </section>
 
@@ -263,6 +269,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 // ===== CONSTANTS =====
 const CODES=[];for(let i=1;i<=50;i++)CODES.push(String(i));
 const CL=['#1e3a5f','#b45309','#059669','#dc2626','#7c3aed','#0891b2','#c2410c','#be185d','#4d7c0f','#0d9488','#9f1239','#7e22ce'];
+const PASTEL=['#dbeafe','#fef3c7','#d1fae5','#fee2e2','#ede9fe','#cffafe','#ffedd5','#fce7f3','#ecfccb','#ccfbf1','#ffe4e6','#f3e8ff'];
 
 // ===== STATE =====
 let _initDone=false;
@@ -354,7 +361,7 @@ function calcRestRec(){
     else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정 ${legalMin}분, 여유 ${spare}명)`;
   }
   // 상시 인원/운영시간 변경 시 자동 계산하여 반영
-  if(rec>0&&_initDone){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);renderStaff();}
+  if(rec>0){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);}
 }
 
 function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
@@ -381,7 +388,7 @@ function rebuildStaff(){
   const n=+document.getElementById('inpStaffCount').value;
   const old=S.staff.slice();S.staff=[];
   for(let i=0;i<n;i++){const code=CODES[i]||`${i+1}`;const prev=old[i];
-    S.staff.push({code,type:prev?prev.type:(i<S.fixedCount?'fixed':'rotate'),restMin:prev?prev.restMin:S.restMin});
+    S.staff.push({code,type:prev?prev.type:(i<S.fixedCount?'fixed':'rotate'),restMin:S.restMin});
     if(!S.nameMap[code])S.nameMap[code]='';}
   renderStaff();renderRestGrid();initAtt();calcRestRec();autoSave();
 }
@@ -413,6 +420,20 @@ function applyBulkPaste(){
   renderNameBank();renderSchTags();autoSave();
   toast('✅',`${added}명 추가 (총 ${S.nameEntries.length}명)`);
 }
+function sortNames(){
+  S.nameEntries.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  renderNameBank();renderSchTags();autoSave();toast('✅','가나다순 정렬');
+}
+function autoAssignNames(){
+  const unmappedCodes=S.staff.filter(s=>!S.nameMap[s.code]).map(s=>s.code);
+  const unmappedNames=S.nameEntries.filter(e=>e.name&&!Object.values(S.nameMap).includes(e.name));
+  let count=0;
+  for(let i=0;i<Math.min(unmappedCodes.length,unmappedNames.length);i++){
+    S.nameMap[unmappedCodes[i]]=unmappedNames[i].name;count++;
+  }
+  if(count){renderSchTags();renderNameChips();renderMapStatus();autoSave();toast('✅',`${count}명 자동 배치`);}
+  else toast('⚠️','배치할 이름이 없습니다');
+}
 function clearAllNames(){
   S.nameEntries=[];S.nameMap={};S.staff.forEach(s=>S.nameMap[s.code]='');
   renderNameBank();renderSchTags();autoSave();toast('🗑️','이름 초기화');
@@ -436,7 +457,7 @@ function renderNameInputs(){
   const w=document.getElementById('nameInputs');if(!w)return;w.innerHTML='';
   S.nameEntries.forEach(e=>{
     w.innerHTML+=`<div class="flex items-center gap-1">
-      <input type="text" class="inp text-sm py-1.5" style="width:90px" placeholder="이름" value="${e.name}" oninput="updateNameEntry(${e.id},this.value)">
+      <input type="text" class="inp text-sm py-1.5" style="width:90px" placeholder="이름" value="${e.name}" lang="ko" oninput="updateNameEntry(${e.id},this.value)">
       <button onclick="removeNameEntry(${e.id})" class="text-red-400 hover:text-red-600 text-sm px-1">✕</button></div>`;
   });
 }
@@ -452,12 +473,13 @@ function renderNameChips(){
     const used=usedNames.includes(e.name);
     const col=CL[i%CL.length];
     const mappedCode=used?Object.keys(S.nameMap).find(c=>S.nameMap[c]===e.name):'';
+    const pastel=PASTEL[i%PASTEL.length];
     if(used){
       assigned.push(`<div class="name-chip used" onclick="unmapName('${e.name}')" title="클릭하면 배치 해제"
-        style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0">${e.name} (${mappedCode}번) ✕</div>`);
+        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name} (${mappedCode}번) ✕</div>`);
     }else{
       unassigned.push(`<div class="name-chip" draggable="true" data-name="${e.name}"
-        style="background:${col};color:#fff">${e.name}</div>`);
+        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name}</div>`);
     }
   });
   wU.innerHTML=unassigned.length?unassigned.join(''):'<span class="text-[11px] text-[#94a3b8]">없음</span>';
@@ -614,8 +636,8 @@ function renderSchTable(){
     h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10 text-center" style="font-size:14px">${sl.time}~${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
-    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#fff7ed','#c2410c')).join('')||dash()}</td>`;
-    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#ecfdf5','#059669')).join('')}
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ea580c','#fff')).join('')||dash()}</td>`;
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#059669','#fff')).join('')}
       <input type="text" class="inp text-xs py-1 mt-1" style="width:100%;min-width:80px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
@@ -627,8 +649,7 @@ function renderSchTable(){
 
 function makeTag(code,si,from,bg,fg){
   const mapped=!!S.nameMap[code];const col=codeColor(code);
-  if(!bg){bg=mapped?col+'35':col+'22';fg=mapped?'#fff':col;}
-  if(mapped&&!arguments[3]){bg=col;fg='#fff';}
+  if(!bg){bg=col;fg='#fff';}
   return `<span class="sch-tag ${mapped?'mapped':'unmapped'}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
     style="background:${bg};color:${fg}" data-dn="${code}">${dn(code)}</span>`;
 }
@@ -650,9 +671,9 @@ function renderSchTags(){
     const code=el.dataset.dn;const mapped=!!S.nameMap[code];const col=codeColor(code);
     el.textContent=dn(code);
     el.className='sch-tag '+(mapped?'mapped':'unmapped');
-    if(el.dataset.from==='__rest__'){el.style.background='#fff7ed';el.style.color='#c2410c';}
-    else if(el.dataset.from==='__support__'){el.style.background='#ecfdf5';el.style.color='#059669';}
-    else{el.style.background=mapped?col:'#'+col.slice(1)+'22';el.style.color=mapped?'#fff':col;}
+    if(el.dataset.from==='__rest__'){el.style.background='#ea580c';el.style.color='#fff';}
+    else if(el.dataset.from==='__support__'){el.style.background='#059669';el.style.color='#fff';}
+    else{el.style.background=col;el.style.color='#fff';}
   });
   // 요약 영역 텍스트
   document.querySelectorAll('[data-dn]:not(.sch-tag)').forEach(el=>{el.textContent=dn(el.dataset.dn);});
