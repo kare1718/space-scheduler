@@ -605,6 +605,11 @@ function genSchedule(){
   document.getElementById('dlPdf').classList.remove('hidden');
 
   renderSchTable();renderNameBank();validateRules();autoSave();
+  // 설정 + 저장목록 접기
+  const setupBody=document.getElementById('setupBody');
+  if(setupBody){setupBody.style.display='none';setupBody.previousElementSibling?.classList.remove('open');}
+  const saveBody=document.getElementById('saveBody');
+  if(saveBody){saveBody.style.display='none';saveBody.previousElementSibling?.classList.remove('open');}
   toast('✅','스케줄 생성 완료!');
 }
 
