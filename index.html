@@ -914,8 +914,26 @@ function getSerializableState(){
     nameEntries:S.nameEntries,nextNameId:S.nextNameId,sch:S.sch,attend:S.attend};
 }
 
+// ===== UNDO =====
+const _undoStack=[];const MAX_UNDO=30;
+function pushUndo(){
+  if(!_initDone)return;
+  _undoStack.push(JSON.stringify(getSerializableState()));
+  if(_undoStack.length>MAX_UNDO)_undoStack.shift();
+}
+function undo(){
+  if(_undoStack.length<2){toast('⚠️','되돌릴 항목 없음');return;}
+  _undoStack.pop(); // 현재 상태 제거
+  const prev=_undoStack[_undoStack.length-1];
+  applyState(JSON.parse(prev));
+  try{localStorage.setItem(LS_AUTO,prev);}catch(e){}
+  toast('↩️','실행 취소');
+}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();}});
+
 function autoSave(){
   if(!_initDone)return;
+  pushUndo();
   try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
   schedulePush();
 }
