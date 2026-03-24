@@ -229,6 +229,8 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
       <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
       <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
       <div id="mapStatus" class="mt-2 pt-2 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
+      <!-- 요약 -->
+      <div id="summaryWrap" class="mt-3 pt-3 border-t border-[#e2e8f0]"></div>
     </div>
 
     <!-- 스케줄 테이블 (오른쪽 70%) -->
@@ -389,12 +391,12 @@ function rebuildStaff(){
 function renderStaff(){
   const w=document.getElementById('staffList');w.innerHTML='';
   S.staff.forEach((s,i)=>{const col=CL[i%CL.length];
-    w.innerHTML+=`<div class="flex items-center gap-2 card-s p-1.5">
-      <div class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</div>
-      <span class="text-sm text-[#1e3a5f] flex-1 font-medium">${s.code}번</span>
-      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-xs py-1 text-center" style="width:65px" onchange="S.staff[${i}].restMin=+this.value;autoSave()" title="휴게(분)">
-      <span class="text-[10px] text-[#94a3b8]">분</span>
-      <select class="inp text-xs py-1" style="width:60px" onchange="S.staff[${i}].type=this.value;autoSave()">
+    w.innerHTML+=`<div class="flex items-center gap-1.5 card-s p-1.5" style="min-height:34px">
+      <div class="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</div>
+      <span class="text-xs text-[#1e3a5f] font-medium flex-shrink-0" style="width:30px">${s.code}번</span>
+      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-xs py-0.5 text-center flex-shrink-0" style="width:55px;padding:4px" onchange="S.staff[${i}].restMin=+this.value;autoSave()" title="휴게(분)">
+      <span class="text-[9px] text-[#94a3b8] flex-shrink-0">분</span>
+      <select class="inp text-xs py-0.5 flex-shrink-0" style="width:55px;padding:4px" onchange="S.staff[${i}].type=this.value;autoSave()">
         <option value="fixed" ${s.type==='fixed'?'selected':''}>고정</option>
         <option value="rotate" ${s.type==='rotate'?'selected':''}>교대</option></select></div>`;
   });
@@ -632,14 +634,9 @@ function renderSchTable(){
       <input type="text" class="inp text-xs py-1 mt-1" style="width:100%;min-width:80px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
-
-  h+=`<div class="mt-4 p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0]"><h4 class="text-sm font-bold text-[#1e3a5f] mb-2">📊 요약</h4><div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">`;
-  S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const col=CL[i%CL.length];
-    h+=`<div class="p-2 rounded-lg bg-white border" style="border-color:${col}30">
-      <div class="text-sm font-bold" style="color:${col}"><span data-dn="${s.code}">${dn(s.code)}</span></div>
-      <div class="text-[10px] text-[#64748b]">${s.type==='fixed'?'고정':'교대'} · ${wc}h · 휴게${rc*S.restUnit}분</div></div>`;});
-  h+=`</div></div>`;
   w.innerHTML=h;
+  // 요약은 왼쪽 패널에 렌더링
+  renderSummary();
   bindSchDnD();
 }
 
@@ -651,6 +648,17 @@ function makeTag(code,si,from,bg,fg){
     style="background:${bg};color:${fg}" data-dn="${code}">${dn(code)}</span>`;
 }
 function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
+
+function renderSummary(){
+  const w=document.getElementById('summaryWrap');if(!w||!S.sch)return;
+  let h=`<h4 class="text-xs font-bold text-[#1e3a5f] mb-2">📊 요약</h4><div class="grid grid-cols-2 gap-1.5">`;
+  S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const col=CL[i%CL.length];
+    h+=`<div class="p-1.5 rounded-lg bg-white border text-[10px]" style="border-color:${col}30">
+      <span class="font-bold" style="color:${col}" data-dn="${s.code}">${dn(s.code)}</span>
+      <span class="text-[#64748b]">${s.type==='fixed'?'고':'교'} ${wc}h 휴${rc*S.restUnit}분</span></div>`;});
+  h+=`</div>`;
+  w.innerHTML=h;
+}
 
 function renderSchTags(){
   document.querySelectorAll('.sch-tag[data-dn]').forEach(el=>{
