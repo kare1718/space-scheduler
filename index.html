@@ -457,7 +457,7 @@ function renderNameInputs(){
   const w=document.getElementById('nameInputs');if(!w)return;w.innerHTML='';
   S.nameEntries.forEach(e=>{
     w.innerHTML+=`<div class="flex items-center gap-1">
-      <input type="text" class="inp text-sm py-1.5" style="width:90px" placeholder="이름" value="${e.name}" lang="ko" oninput="updateNameEntry(${e.id},this.value)">
+      <input type="text" class="inp text-sm py-1.5 text-center" style="width:90px" placeholder="이름" value="${e.name}" lang="ko" oninput="updateNameEntry(${e.id},this.value)">
       <button onclick="removeNameEntry(${e.id})" class="text-red-400 hover:text-red-600 text-sm px-1">✕</button></div>`;
   });
 }
