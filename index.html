@@ -313,10 +313,13 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function dn(code){return S.nameMap[code]||code;}
 function getPosition(code){
   if(!S.sch||!S.sch.length)return code+'번';
-  const sl=S.sch[0];
-  for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))return zone;}
-  if(sl.rest.includes(code))return '휴게';
-  return code+'번';
+  // 전체 시간대에서 가장 많이 배치된 구역 반환
+  const count={};
+  S.sch.forEach(sl=>{
+    for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))count[zone]=(count[zone]||0)+1;}
+  });
+  const best=Object.entries(count).sort((a,b)=>b[1]-a[1])[0];
+  return best?best[0]:code+'번';
 }
 function codeColor(code){const i=S.staff.findIndex(s=>s.code===code);return CL[(i>=0?i:0)%CL.length];}
 
@@ -481,11 +484,8 @@ function renderNameChips(){
     const pastel=PASTEL[i%PASTEL.length];
     if(used){
       const pos=getPosition(mappedCode);
-      const zIdx=S.zones.findIndex(z=>z.name===pos);
-      const zCol=zIdx>=0?S.zones[zIdx].color:'#64748b';
-      const zPastel=zIdx>=0?zCol+'18':'#f1f5f9';
       assigned.push(`<div class="name-chip used" onclick="unmapName('${e.name}')" title="클릭하면 배치 해제"
-        style="background:${zPastel};color:${zCol};border:1px solid ${zCol}40">${e.name} (${pos}) ✕</div>`);
+        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name} (${pos}) ✕</div>`);
     }else{
       unassigned.push(`<div class="name-chip" draggable="true" data-name="${e.name}"
         style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name}</div>`);
@@ -926,8 +926,7 @@ function applyState(d){
   renderZones();renderStaff();renderRestGrid();initAtt();renderAtt();
   if(S.sch){
     document.getElementById('nameBankWrap').classList.remove('hidden');
-    document.getElementById('dlPng').classList.remove('hidden');
-    document.getElementById('dlPdf').classList.remove('hidden');
+    document.getElementById('exportWrap').style.display='';
     renderSchTable();renderNameBank();validateRules();
   }
   return true;
