@@ -973,25 +973,23 @@ function renderSaveList(){
   w.innerHTML=h;
 }
 
-// ===== AUTO CLOUD (invisible to user) =====
-const BLOB_API='https://jsonblob.com/api/jsonBlob';
-const BLOB_ID='019d1158-d1b4-79ea-8ea2-840bd7bad1fd';
+// ===== AUTO CLOUD (서버 API) =====
 let _pushTimer=null;
 
 async function cloudPush(){
   try{
     const payload={v:1,current:getSerializableState(),slots:getSaveSlots(),updated:new Date().toISOString()};
-    await fetch(BLOB_API+'/'+BLOB_ID,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   }catch(e){}
 }
 
 async function cloudPull(){
   try{
-    const res=await fetch(BLOB_API+'/'+BLOB_ID);
+    const res=await fetch('/api/data');
     if(!res.ok)return false;
     const data=await res.json();
-    if(!data.v)return false;
-    if(data.current){applyState(data.current);autoSave();}
+    if(!data.v||!data.current)return false;
+    applyState(data.current);autoSave();
     if(data.slots&&data.slots.length){
       const existing=getSaveSlots();
       const existingNames=new Set(existing.map(s=>s.name));
