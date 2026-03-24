@@ -41,20 +41,21 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .sec-title{font-size:16px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:6px}
 .label{font-size:13px;color:#64748b;margin-bottom:3px;display:block;font-weight:500}
 
-.sch-cell{padding:6px 6px;border-bottom:1px solid #edf2f7;text-align:center;vertical-align:middle;font-size:14px}
+.sch-cell{padding:6px 5px;border-bottom:1px solid #e2e8f0;border-right:1px solid #edf2f7;text-align:center;vertical-align:middle;font-size:13px}
+.sch-cell:last-child{border-right:none}
 .sch-cell.drop-over{background:#dbeafe!important;box-shadow:inset 0 0 0 2px #3b82f6}
-.sch-tag{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:12px;font-weight:700;margin:2px;cursor:grab;transition:all .15s;border:none!important;padding:0}
+.sch-tag{display:inline-flex;align-items:center;justify-content:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;margin:1px;cursor:grab;transition:all .15s;border:none!important;white-space:nowrap}
 .sch-tag:active{cursor:grabbing}
 .sch-tag.dragging-tag{opacity:.35}
-.sch-tag.unmapped{opacity:.85}
-.sch-tag.mapped{box-shadow:0 1px 4px rgba(0,0,0,.1)}
-#schTable{border-spacing:0}
-#schTable{width:100%;table-layout:auto}
-#schTable thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:8px 6px;font-size:13px;letter-spacing:.5px}
-#schTable tbody tr:nth-child(even){background:#fafbfd}
-#schTable tbody tr:hover{background:#f0f4ff}
-#schTable td.sch-cell{padding:6px 4px;min-width:80px;vertical-align:middle}
-#schTable td.sch-cell:first-child{min-width:75px;white-space:nowrap}
+.sch-tag.unmapped{opacity:.7}
+.sch-tag.mapped{box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#schTable{border-spacing:0;width:100%;table-layout:auto;border-collapse:collapse}
+#schTable thead th{background:#f0f4f8;border-bottom:2px solid #cbd5e1;border-right:1px solid #e2e8f0;padding:8px 5px;font-size:12px;letter-spacing:.3px}
+#schTable thead th:last-child{border-right:none}
+#schTable tbody tr:nth-child(even) td{background:#fafbfd}
+#schTable tbody tr:hover td{background:#f0f4ff}
+#schTable td.sch-cell{padding:5px 4px;min-width:70px;vertical-align:middle}
+#schTable td.sch-cell:first-child{min-width:75px;white-space:nowrap;border-right:2px solid #cbd5e1}
 
 .name-chip{padding:6px 12px;border-radius:9px;font-size:13px;font-weight:700;cursor:grab;user-select:none;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
 .name-chip.used{cursor:pointer}
@@ -113,6 +114,13 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
         <button class="tab-btn" data-t="att">📝 출결 확인</button>
       </nav>
       <button onclick="quickSave()" class="btn btn-p py-[10px] px-[18px]" style="font-size:14px">💾 저장</button>
+      <div class="relative" id="exportWrap" style="display:none">
+        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="btn btn-s py-[10px] px-[14px]" style="font-size:14px">📥 내보내기</button>
+        <div id="exportMenu" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" style="min-width:120px">
+          <button onclick="downloadPNG();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📸 PNG 저장</button>
+          <button onclick="downloadPDF();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📄 PDF 저장</button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -190,10 +198,6 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
         </select>
         <button onclick="genSchedule()" class="btn btn-p py-2.5 px-5">🤖 자동 생성</button>
       </div>
-      <div class="flex gap-1">
-        <button onclick="downloadPNG()" id="dlPng" class="btn btn-s text-xs py-2 hidden">📸 PNG</button>
-        <button onclick="downloadPDF()" id="dlPdf" class="btn btn-s text-xs py-2 hidden">📄 PDF</button>
-      </div>
     </div>
   </div>
 
@@ -219,20 +223,11 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
       <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
     </div>
     <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-3 hidden"></div>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      <!-- 미배치 -->
-      <div>
-        <div class="mb-1"><span class="text-xs font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
-        <div id="nameChipsUnassigned" class="flex flex-wrap gap-1.5 min-h-[40px] p-2 rounded-lg bg-blue-50 border border-blue-100"></div>
-      </div>
-      <!-- 배치 완료 -->
-      <div>
-        <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
-        <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[40px] p-2 rounded-lg bg-emerald-50 border border-emerald-100"></div>
-      </div>
-      <!-- 요약 -->
-      <div id="summaryWrap"></div>
-    </div>
+    <div class="mb-1"><span class="text-xs font-bold text-[#1e3a5f]" id="unassignedLabel">📌 미배치</span></div>
+    <div id="nameChipsUnassigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-blue-50 border border-blue-100 mb-2"></div>
+    <div class="mb-1"><span class="text-xs font-bold text-[#059669]" id="assignedLabel">✅ 배치 완료</span></div>
+    <div id="nameChipsAssigned" class="flex flex-wrap gap-1.5 min-h-[36px] p-2 rounded-lg bg-emerald-50 border border-emerald-100 mb-2"></div>
+    <div id="summaryWrap"></div>
     <div id="mapStatus" class="mt-2 pt-2 border-t border-[#e2e8f0] text-xs text-[#64748b]"></div>
   </div>
 
@@ -316,6 +311,13 @@ function bindTabs(){
 
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function dn(code){return S.nameMap[code]||code;}
+function getPosition(code){
+  if(!S.sch||!S.sch.length)return code+'번';
+  const sl=S.sch[0];
+  for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))return zone;}
+  if(sl.rest.includes(code))return '휴게';
+  return code+'번';
+}
 function codeColor(code){const i=S.staff.findIndex(s=>s.code===code);return CL[(i>=0?i:0)%CL.length];}
 
 function buildTimeOpts(){
@@ -478,8 +480,9 @@ function renderNameChips(){
     const mappedCode=used?Object.keys(S.nameMap).find(c=>S.nameMap[c]===e.name):'';
     const pastel=PASTEL[i%PASTEL.length];
     if(used){
+      const pos=getPosition(mappedCode);
       assigned.push(`<div class="name-chip used" onclick="unmapName('${e.name}')" title="클릭하면 배치 해제"
-        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name} (${mappedCode}번) ✕</div>`);
+        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name} (${pos}) ✕</div>`);
     }else{
       unassigned.push(`<div class="name-chip" draggable="true" data-name="${e.name}"
         style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name}</div>`);
@@ -627,8 +630,7 @@ function genSchedule(){
   if(!S.nameEntries.length){for(let i=0;i<S.staff.length;i++)S.nameEntries.push({id:S.nextNameId++,name:''});}
 
   document.getElementById('nameBankWrap').classList.remove('hidden');
-  document.getElementById('dlPng').classList.remove('hidden');
-  document.getElementById('dlPdf').classList.remove('hidden');
+  document.getElementById('exportWrap').style.display='';
 
   renderSchTable();renderNameBank();validateRules();autoSave();
   // 설정 + 저장목록 접기
@@ -655,7 +657,7 @@ function renderSchTable(){
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#c2410c')).join('')||dash()}</td>`;
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#d1fae5','#059669')).join('')}
-      <input type="text" class="inp text-[10px] py-0.5 mt-1" style="width:60px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
+      <input type="text" class="inp text-[9px] py-0 mt-1" style="width:45px;padding:2px 3px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
   w.innerHTML=h;
@@ -723,6 +725,16 @@ function bindSchDnD(){
       toast('✅',`${targetCode}번 → "${name}"`);
     });
 
+    // 클릭 시 매핑 해제
+    tag.addEventListener('click',e=>{
+      const code=tag.dataset.code;
+      if(S.nameMap[code]){
+        const name=S.nameMap[code];S.nameMap[code]='';
+        renderSchTags();renderNameChips();renderMapStatus();autoSave();
+        toast('↩️',`"${name}" 배치 해제`);
+      }
+    });
+
     tag.addEventListener('dragstart',e=>{
       if(e.dataTransfer.types.includes('text/name'))return;
       e.dataTransfer.effectAllowed='move';
@@ -787,15 +799,23 @@ async function downloadPDF(){
 // ===== RULES =====
 function validateRules(){
   if(!S.sch)return;
-  const rules=[
-    {name:'상시 인원',ok:S.sch.every(sl=>Object.values(sl.pa).flat().length>=S.fixedCount)},
-    {name:'개인 휴게',ok:S.staff.every(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc*S.restUnit===s.restMin;})},
-    {name:'연속 휴게 방지',ok:S.staff.every(s=>{let c=0;for(const sl of S.sch){if(sl.rest.includes(s.code)){c++;if(c>=3)return false;}else c=0;}return true;})},
-    {name:'파트 제한',ok:S.staff.filter(s=>s.type==='rotate').every(s=>{const p=new Set();S.sch.forEach(sl=>{for(const[k,a]of Object.entries(sl.pa))if(a.includes(s.code))p.add(k);});return p.size<=S.maxParts;})},
-    {name:'근무/휴게 분리',ok:S.sch.every(sl=>{const w=Object.values(sl.pa).flat();return!w.some(n=>sl.rest.includes(n));})},
-  ];
+  // 상시 인원 체크
+  const r1fail=S.sch.filter(sl=>Object.values(sl.pa).flat().length<S.fixedCount);
+  const r1={name:'상시 인원',ok:!r1fail.length,reason:r1fail.length?`${r1fail[0].time} 등 ${r1fail.length}개 시간대 미달`:''};
+  // 개인 휴게
+  const r2fail=S.staff.filter(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc*S.restUnit!==s.restMin;});
+  const r2={name:'개인 휴게',ok:!r2fail.length,reason:r2fail.length?`${r2fail.map(s=>dn(s.code)).slice(0,3).join(',')} 등 ${r2fail.length}명 미충족`:''};
+  // 연속 휴게
+  const r3fail=S.staff.filter(s=>{let c=0;for(const sl of S.sch){if(sl.rest.includes(s.code)){c++;if(c>=3)return true;}else c=0;}return false;});
+  const r3={name:'연속 휴게 방지',ok:!r3fail.length,reason:r3fail.length?`${r3fail.map(s=>dn(s.code)).join(',')} 3연속 휴게`:''};
+  // 근무/휴게 분리
+  const r4fail=S.sch.filter(sl=>{const w=Object.values(sl.pa).flat();return w.some(n=>sl.rest.includes(n));});
+  const r4={name:'근무/휴게 분리',ok:!r4fail.length,reason:r4fail.length?`${r4fail[0].time} 중복 배치`:''};
+  const rules=[r1,r2,r3,r4];
   const g=document.getElementById('ruleGrid');g.innerHTML='';
-  rules.forEach(r=>{g.innerHTML+=`<div class="flex items-center gap-1 p-1.5 rounded-lg ${r.ok?'bg-green-50':'bg-red-50'} text-xs font-medium ${r.ok?'text-green-700':'text-red-700'}">${r.ok?'✅':'⚠️'} ${r.name}</div>`;});
+  rules.forEach(r=>{g.innerHTML+=`<div class="flex items-center justify-between gap-2 p-1.5 rounded-lg ${r.ok?'bg-green-50':'bg-red-50'} text-xs font-medium">
+    <span class="${r.ok?'text-green-700':'text-red-700'}">${r.ok?'✅':'⚠️'} ${r.name}</span>
+    ${r.reason?`<span class="text-red-500 text-[10px]">${r.reason}</span>`:''}</div>`;});
   document.getElementById('ruleBox').classList.remove('hidden');
 }
 
