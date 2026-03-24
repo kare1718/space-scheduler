@@ -41,20 +41,20 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .sec-title{font-size:18px;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:6px}
 .label{font-size:14px;color:#64748b;margin-bottom:3px;display:block;font-weight:500}
 
-.sch-cell{padding:10px 8px;border-bottom:1px solid #edf2f7;text-align:center;vertical-align:middle;font-size:16px}
+.sch-cell{padding:6px 6px;border-bottom:1px solid #edf2f7;text-align:center;vertical-align:middle;font-size:14px}
 .sch-cell.drop-over{background:#dbeafe!important;box-shadow:inset 0 0 0 2px #3b82f6}
-.sch-tag{display:inline-block;padding:8px 16px;border-radius:20px;font-size:16px;font-weight:700;margin:3px;cursor:grab;transition:all .15s;border:none!important}
+.sch-tag{display:inline-block;padding:4px 10px;border-radius:16px;font-size:13px;font-weight:700;margin:2px;cursor:grab;transition:all .15s;border:none!important}
 .sch-tag:active{cursor:grabbing}
 .sch-tag.dragging-tag{opacity:.35}
 .sch-tag.unmapped{opacity:.85}
 .sch-tag.mapped{box-shadow:0 1px 4px rgba(0,0,0,.1)}
 #schTable{border-spacing:0}
 #schTable{width:100%;table-layout:auto}
-#schTable thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:16px 16px;font-size:16px;letter-spacing:.5px}
+#schTable thead th{background:#f8fafc;border-bottom:2px solid #e2e8f0;padding:8px 6px;font-size:13px;letter-spacing:.5px}
 #schTable tbody tr:nth-child(even){background:#fafbfd}
 #schTable tbody tr:hover{background:#f0f4ff}
-#schTable td.sch-cell{padding:14px 14px;min-width:160px;font-size:16px}
-#schTable td.sch-cell:first-child{min-width:150px}
+#schTable td.sch-cell{padding:6px 6px;min-width:100px}
+#schTable td.sch-cell:first-child{min-width:60px;white-space:nowrap}
 
 .name-chip{padding:8px 16px;border-radius:9px;font-size:16px;font-weight:700;cursor:grab;user-select:none;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
 .name-chip.used{cursor:pointer}
@@ -606,10 +606,10 @@ function genSchedule(){
 
   renderSchTable();renderNameBank();validateRules();autoSave();
   // 설정 + 저장목록 접기
-  const setupBody=document.getElementById('setupBody');
-  if(setupBody){setupBody.style.display='none';setupBody.previousElementSibling?.classList.remove('open');}
-  const saveBody=document.getElementById('saveBody');
-  if(saveBody){saveBody.style.display='none';saveBody.previousElementSibling?.classList.remove('open');}
+  document.querySelectorAll('.collapse-btn.open').forEach(btn=>{
+    const id=btn.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
+    if(id){const el=document.getElementById(id);if(el){el.style.display='none';btn.classList.remove('open');}}
+  });
   toast('✅','스케줄 생성 완료!');
 }
 
@@ -624,7 +624,7 @@ function renderSchTable(){
 
   S.sch.forEach((sl,si)=>{
     const nt=si<S.sch.length-1?S.sch[si+1].time:fmtHour(S.closeH);
-    h+=`<tr><td class="sch-cell text-xs font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10">${sl.time}~${nt}</td>`;
+    h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10" style="font-size:12px;line-height:1.4">${sl.time}~<br>${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#fff7ed','#c2410c')).join('')||dash()}</td>`;
