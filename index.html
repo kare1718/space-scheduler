@@ -145,40 +145,27 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
       <h2 class="text-base font-bold text-[#1e3a5f]">⚙️ 설정</h2>
     </div>
     <div id="setupBody" class="mt-3">
-      <!-- 운영시간 + 휴게 (한 줄) -->
-      <div class="card-s p-3 mb-3">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div>
-            <label class="label">오픈</label><select id="selOpen" class="inp"></select>
-          </div>
-          <div>
-            <label class="label">마감</label><select id="selClose" class="inp"></select>
-          </div>
-          <div>
-            <label class="label">총 시간</label>
-            <div class="p-2 rounded-lg bg-blue-50 text-sm text-[#1e3a5f] text-center font-bold"><span id="lblHours">9</span>시간</div>
-          </div>
-          <div>
-            <label class="label">교대 최대 파트</label>
-            <input type="number" id="inpMaxP" value="2" min="1" max="8" class="inp">
-          </div>
-          <div>
-            <label class="label">1인 휴게(분)</label>
-            <input type="number" id="inpRest" value="120" min="0" step="5" class="inp">
-          </div>
-          <div>
-            <label class="label">휴게 단위(분)</label>
-            <input type="number" id="inpRestUnit" value="60" min="5" step="5" class="inp">
-          </div>
-          <div>
-            <label class="label">상시 최소 인원</label>
-            <input type="number" id="inpFixed" value="7" min="0" class="inp">
-            <div id="restRecommend" class="mt-1 p-1.5 rounded-lg bg-indigo-50 text-[11px] text-[#1e3a5f]">💡 <span id="restRecText">-</span></div>
-          </div>
-        </div>
-      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <!-- 구역 (좌 50%) -->
+        <!-- 설정 (좌 50%) -->
+        <div class="card-s p-3">
+          <div class="grid grid-cols-3 gap-2 mb-3">
+            <div><label class="label">오픈</label><select id="selOpen" class="inp"></select></div>
+            <div><label class="label">마감</label><select id="selClose" class="inp"></select></div>
+            <div><label class="label">총 시간</label><div class="p-2 rounded-lg bg-blue-50 text-sm text-[#1e3a5f] text-center font-bold"><span id="lblHours">9</span>시간</div></div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mb-3">
+            <div><label class="label">총원</label><input type="number" id="inpStaffCount" value="10" min="1" max="50" class="inp" onchange="rebuildStaff()"></div>
+            <div><label class="label">상시 최소</label><input type="number" id="inpFixed" value="7" min="0" class="inp"></div>
+            <div><label class="label">교대 최대 파트</label><input type="number" id="inpMaxP" value="2" min="1" max="8" class="inp"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <div><label class="label">1인 휴게(분)</label><input type="number" id="inpRest" value="120" min="0" step="5" class="inp"></div>
+            <div><label class="label">휴게 단위(분)</label><input type="number" id="inpRestUnit" value="60" min="5" step="5" class="inp"></div>
+          </div>
+          <div id="restRecommend" class="p-1.5 rounded-lg bg-indigo-50 text-[11px] text-[#1e3a5f]">💡 <span id="restRecText">-</span></div>
+          <button onclick="applyGlobalRest()" class="btn btn-s text-[11px] py-1 px-3 mt-2 w-full">휴게 전원 일괄적용</button>
+        </div>
+        <!-- 구역 (우 50%) -->
         <div class="card-s p-3">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm font-bold text-[#1e3a5f]">📍 구역</span>
@@ -186,19 +173,9 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
           </div>
           <div id="zoneList" class="space-y-1.5"></div>
         </div>
-        <!-- 인원 (우 50%) -->
-        <div class="card-s p-3">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm font-bold text-[#1e3a5f]">👥 인원</span>
-            <div class="flex items-center gap-2">
-              <button onclick="applyGlobalRest()" class="btn btn-s text-[11px] py-1 px-2">휴게 일괄적용</button>
-              <label class="label mb-0">총원</label>
-              <input type="number" id="inpStaffCount" value="10" min="1" max="50" class="inp" style="width:60px" onchange="rebuildStaff()">
-            </div>
-          </div>
-          <div id="staffList" class="space-y-1" style="max-height:420px;overflow-y:auto"></div>
-        </div>
       </div>
+      <!-- 인원 목록 숨김 (데이터용) -->
+      <div id="staffList" class="hidden"></div>
     </div>
   </div>
 
@@ -408,21 +385,7 @@ function rebuildStaff(){
     if(!S.nameMap[code])S.nameMap[code]='';}
   renderStaff();renderRestGrid();initAtt();calcRestRec();autoSave();
 }
-function renderStaff(){
-  const w=document.getElementById('staffList');w.innerHTML='';
-  S.staff.forEach((s,i)=>{const col=CL[i%CL.length];
-    w.innerHTML+=`<div class="flex items-center gap-2 card-s p-1.5">
-      <div class="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</div>
-      <span class="text-xs text-[#1e3a5f] font-medium" style="width:28px;flex-shrink:0">${s.code}번</span>
-      <div class="flex items-center gap-1 ml-auto flex-shrink-0">
-        <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-xs text-center" style="width:60px;padding:4px 2px" onchange="S.staff[${i}].restMin=+this.value;autoSave()" title="휴게(분)">
-        <span class="text-[10px] text-[#94a3b8]">분</span>
-        <select class="inp text-xs" style="width:52px;padding:4px 2px" onchange="S.staff[${i}].type=this.value;autoSave()">
-          <option value="fixed" ${s.type==='fixed'?'selected':''}>고정</option>
-          <option value="rotate" ${s.type==='rotate'?'selected':''}>교대</option></select>
-      </div></div>`;
-  });
-}
+function renderStaff(){/* 인원 UI 제거됨 - 설정에서 총원/상시인원으로 관리 */}
 
 // ===== NAME BANK =====
 function addNameEntry(){
