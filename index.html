@@ -481,8 +481,11 @@ function renderNameChips(){
     const pastel=PASTEL[i%PASTEL.length];
     if(used){
       const pos=getPosition(mappedCode);
+      const zIdx=S.zones.findIndex(z=>z.name===pos);
+      const zCol=zIdx>=0?S.zones[zIdx].color:'#64748b';
+      const zPastel=zIdx>=0?zCol+'18':'#f1f5f9';
       assigned.push(`<div class="name-chip used" onclick="unmapName('${e.name}')" title="클릭하면 배치 해제"
-        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name} (${pos}) ✕</div>`);
+        style="background:${zPastel};color:${zCol};border:1px solid ${zCol}40">${e.name} (${pos}) ✕</div>`);
     }else{
       unassigned.push(`<div class="name-chip" draggable="true" data-name="${e.name}"
         style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name}</div>`);
