@@ -218,7 +218,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
       <textarea id="bulkPasteArea" class="inp text-sm" rows="2" placeholder="이름 붙여넣기 (엑셀, 쉼표, 줄바꿈)" lang="ko"></textarea>
       <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
     </div>
-    <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-3"></div>
+    <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-3 justify-center"></div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <!-- 미배치 -->
       <div>
@@ -636,8 +636,8 @@ function renderSchTable(){
     h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10 text-center" style="font-size:14px">${sl.time}~${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
-    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ea580c','#fff')).join('')||dash()}</td>`;
-    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#059669','#fff')).join('')}
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#c2410c')).join('')||dash()}</td>`;
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#d1fae5','#059669')).join('')}
       <input type="text" class="inp text-xs py-1 mt-1" style="width:100%;min-width:80px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
@@ -649,9 +649,14 @@ function renderSchTable(){
 
 function makeTag(code,si,from,bg,fg){
   const mapped=!!S.nameMap[code];const col=codeColor(code);
-  if(!bg){bg=col;fg='#fff';}
+  const idx=S.staff.findIndex(s=>s.code===code);
+  const pastel=PASTEL[(idx>=0?idx:0)%PASTEL.length];
+  if(!bg){
+    if(mapped){bg=pastel;fg=col;}
+    else{bg='transparent';fg='#94a3b8';}
+  }
   return `<span class="sch-tag ${mapped?'mapped':'unmapped'}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
-    style="background:${bg};color:${fg}" data-dn="${code}">${dn(code)}</span>`;
+    style="background:${bg};color:${fg}${!mapped&&!arguments[3]?';border:1px dashed #cbd5e1!important':''}" data-dn="${code}">${dn(code)}</span>`;
 }
 function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
 
@@ -669,11 +674,13 @@ function renderSummary(){
 function renderSchTags(){
   document.querySelectorAll('.sch-tag[data-dn]').forEach(el=>{
     const code=el.dataset.dn;const mapped=!!S.nameMap[code];const col=codeColor(code);
+    const idx=S.staff.findIndex(s=>s.code===code);
+    const pastel=PASTEL[(idx>=0?idx:0)%PASTEL.length];
     el.textContent=dn(code);
     el.className='sch-tag '+(mapped?'mapped':'unmapped');
-    if(el.dataset.from==='__rest__'){el.style.background='#ea580c';el.style.color='#fff';}
-    else if(el.dataset.from==='__support__'){el.style.background='#059669';el.style.color='#fff';}
-    else{el.style.background=col;el.style.color='#fff';}
+    if(el.dataset.from==='__rest__'){el.style.background=mapped?'#ffedd5':'transparent';el.style.color=mapped?'#c2410c':'#94a3b8';el.style.border=mapped?'none':'1px dashed #cbd5e1';}
+    else if(el.dataset.from==='__support__'){el.style.background=mapped?'#d1fae5':'transparent';el.style.color=mapped?'#059669':'#94a3b8';el.style.border=mapped?'none':'1px dashed #cbd5e1';}
+    else{el.style.background=mapped?pastel:'transparent';el.style.color=mapped?col:'#94a3b8';el.style.border=mapped?'none':'1px dashed #cbd5e1';}
   });
   // 요약 영역 텍스트
   document.querySelectorAll('[data-dn]:not(.sch-tag)').forEach(el=>{el.textContent=dn(el.dataset.dn);});
