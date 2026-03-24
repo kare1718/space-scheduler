@@ -271,7 +271,7 @@ const CL=['#1e3a5f','#b45309','#059669','#dc2626','#7c3aed','#0891b2','#c2410c',
 // ===== STATE =====
 let _initDone=false;
 let S={
-  openH:11, closeH:18, restMin:120, restUnit:60, maxParts:2, fixedCount:7, restMode:'smart',
+  openH:11, closeH:20, restMin:120, restUnit:60, maxParts:2, fixedCount:7, restMode:'smart',
   zones:[{name:'리셉션',color:CL[0],min:2},{name:'Fair Zone',color:CL[1],min:3},{name:'F&B',color:CL[2],min:2}],
   staff:[],
   nameMap:{},
@@ -319,7 +319,7 @@ function buildTimeOpts(){
   const o=document.getElementById('selOpen'),c=document.getElementById('selClose');
   for(let h=0;h<=23;h++){const t=`${String(h).padStart(2,'0')}:00`;
     o.innerHTML+=`<option value="${h}" ${h===11?'selected':''}>${t}</option>`;
-    c.innerHTML+=`<option value="${h}" ${h===18?'selected':''}>${t}</option>`;}
+    c.innerHTML+=`<option value="${h}" ${h===20?'selected':''}>${t}</option>`;}
   // 마감: 익일 새벽 (25=01시, 26=02시, ..., 29=05시)
   for(let h=24;h<=29;h++){const display=`익일 ${String(h-24).padStart(2,'0')}:00`;
     c.innerHTML+=`<option value="${h}">${display}</option>`;}
@@ -357,7 +357,8 @@ function calcRestRec(){
     if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음</span>`;
     else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정 ${legalMin}분, 여유 ${spare}명)`;
   }
-  // 추천값만 표시, 사용자가 직접 수정한 값은 덮어쓰지 않음
+  // 상시 인원/운영시간 변경 시 자동 계산하여 반영
+  if(rec>0&&_initDone){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);renderStaff();}
 }
 
 function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
