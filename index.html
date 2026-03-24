@@ -49,6 +49,8 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .sch-tag.dragging-tag{opacity:.35}
 .sch-tag.unmapped{opacity:.7}
 .sch-tag.mapped{box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.sch-tag.highlight{outline:3px solid #1e3a5f;outline-offset:1px;transform:scale(1.15);z-index:10;position:relative}
+#schTable.dimmed .sch-tag:not(.highlight){opacity:.2}
 #schTable{border-spacing:0;width:100%;table-layout:auto;border-collapse:collapse}
 #schTable thead th{background:#f0f4f8;border-bottom:2px solid #cbd5e1;border-right:1px solid #e2e8f0;padding:8px 5px;font-size:12px;letter-spacing:.3px}
 #schTable thead th:last-child{border-right:none}
@@ -664,7 +666,11 @@ function renderSchTable(){
   });
   h+=`</tbody></table>`;
   w.innerHTML=h;
-  // 요약은 왼쪽 패널에 렌더링
+  // 테이블 빈 곳 클릭 시 하이라이트 해제
+  const tbl=document.getElementById('schTable');
+  if(tbl)tbl.addEventListener('click',e=>{
+    if(!e.target.closest('.sch-tag')){_highlightCode=null;tbl.classList.remove('dimmed');tbl.querySelectorAll('.highlight').forEach(t=>t.classList.remove('highlight'));}
+  });
   renderSummary();
   bindSchDnD();
 }
@@ -709,6 +715,25 @@ function renderSchTags(){
   renderMapStatus();
 }
 
+// ===== HIGHLIGHT =====
+let _highlightCode=null;
+function highlightPerson(code){
+  const tbl=document.getElementById('schTable');if(!tbl)return;
+  if(_highlightCode===code){
+    // 같은 사람 다시 클릭 → 하이라이트 해제
+    _highlightCode=null;
+    tbl.classList.remove('dimmed');
+    tbl.querySelectorAll('.sch-tag.highlight').forEach(t=>t.classList.remove('highlight'));
+  }else{
+    _highlightCode=code;
+    tbl.classList.add('dimmed');
+    tbl.querySelectorAll('.sch-tag').forEach(t=>{
+      if(t.dataset.code===code)t.classList.add('highlight');
+      else t.classList.remove('highlight');
+    });
+  }
+}
+
 // ===== DRAG & DROP =====
 function bindSchDnD(){
   document.querySelectorAll('#schTable .sch-tag').forEach(tag=>{
@@ -728,12 +753,19 @@ function bindSchDnD(){
       toast('✅',`${targetCode}번 → "${name}"`);
     });
 
-    // 클릭 시 매핑 해제
+    // 1클릭: 하이라이트 / 더블클릭: 배치 해제
     tag.addEventListener('click',e=>{
+      e.stopPropagation();
+      highlightPerson(tag.dataset.code);
+    });
+    tag.addEventListener('dblclick',e=>{
+      e.stopPropagation();
       const code=tag.dataset.code;
       if(S.nameMap[code]){
         const name=S.nameMap[code];S.nameMap[code]='';
+        _highlightCode=null;
         renderSchTags();renderNameChips();renderMapStatus();autoSave();
+        const tbl=document.getElementById('schTable');if(tbl)tbl.classList.remove('dimmed');
         toast('↩️',`"${name}" 배치 해제`);
       }
     });
