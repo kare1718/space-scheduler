@@ -210,15 +210,15 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
         <button onclick="autoAssignNames()" class="btn btn-g text-[11px] py-1 px-2">🤖 자동배치</button>
         <button onclick="sortNames()" class="btn btn-s text-[11px] py-1 px-2">가나다순</button>
         <button onclick="addNameEntry()" class="btn btn-s text-[11px] py-1 px-2">+ 추가</button>
-        <button onclick="toggleBulkPaste()" class="btn btn-s text-[11px] py-1 px-2">📋 붙여넣기</button>
+        <button onclick="toggleBulkPaste()" class="btn btn-s text-[11px] py-1 px-2">✏️ 개별입력</button>
         <button onclick="clearAllNames()" class="btn btn-d text-[11px] py-1 px-2">초기화</button>
       </div>
     </div>
-    <div id="bulkPasteWrap" class="hidden mb-2">
+    <div id="bulkPasteWrap" class="mb-2">
       <textarea id="bulkPasteArea" class="inp text-sm" rows="2" placeholder="이름 붙여넣기 (엑셀, 쉼표, 줄바꿈)" lang="ko"></textarea>
       <button onclick="applyBulkPaste()" class="btn btn-p text-xs py-1.5 px-4 mt-1">적용</button>
     </div>
-    <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-3"></div>
+    <div id="nameInputs" class="flex flex-wrap gap-1.5 mb-3 hidden"></div>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <!-- 미배치 -->
       <div>
@@ -406,7 +406,10 @@ function removeNameEntry(id){
   S.nameEntries=S.nameEntries.filter(e=>e.id!==id);
   renderNameBank();renderSchTags();autoSave();
 }
-function toggleBulkPaste(){document.getElementById('bulkPasteWrap').classList.toggle('hidden');}
+function toggleBulkPaste(){
+  document.getElementById('bulkPasteWrap').classList.toggle('hidden');
+  document.getElementById('nameInputs').classList.toggle('hidden');
+}
 function applyBulkPaste(){
   const raw=document.getElementById('bulkPasteArea').value;
   if(!raw.trim()){toast('⚠️','내용을 붙여넣기 하세요');return;}
@@ -534,7 +537,8 @@ function genSchedule(){
   if(T<2){toast('⚠️','운영시간 부족');return;}
   const all=S.staff.map(s=>s.code);const N=all.length;
   const totalMinReq=S.zones.reduce((s,z)=>s+z.min,0);
-  const maxRestPerSlot=Math.max(1,N-Math.max(totalMinReq,S.fixedCount));
+  const minWorking=Math.max(totalMinReq,S.fixedCount);
+  const maxRestPerSlot=Math.max(1,N-minWorking);
 
   const restPlan={};all.forEach(n=>restPlan[n]=[]);
   const slotLoad=new Array(T).fill(0);
@@ -567,7 +571,7 @@ function genSchedule(){
     for(const code of all){
       while(restPlan[code].length<needs[code]){
         let bestSi=-1,bestLoad=Infinity;
-        for(let si=0;si<T;si++){if(restPlan[code].includes(si))continue;if(slotLoad[si]<bestLoad&&N-(slotLoad[si]+1)>=S.fixedCount){bestLoad=slotLoad[si];bestSi=si;}}
+        for(let si=0;si<T;si++){if(restPlan[code].includes(si))continue;if(slotLoad[si]<bestLoad&&N-(slotLoad[si]+1)>=minWorking){bestLoad=slotLoad[si];bestSi=si;}}
         if(bestSi<0)break;restPlan[code].push(bestSi);slotLoad[bestSi]++;
       }
       restPlan[code].sort((a,b)=>a-b);
@@ -581,7 +585,7 @@ function genSchedule(){
         let best=-1,bestSc=-1e9;
         for(let i=0;i<T;i++){
           if(assigned.includes(i)||slotLoad[i]>=maxRestPerSlot)continue;
-          if(N-(slotLoad[i]+1)<S.fixedCount)continue;
+          if(N-(slotLoad[i]+1)<minWorking)continue;
           let sc=0;if(!assigned.some(a=>Math.abs(a-i)===1))sc+=15;
           if(assigned.length>0)sc+=Math.min(...assigned.map(a=>Math.abs(a-i)))*3;
           sc-=slotLoad[i]*4;sc-=Math.abs(i-T/2)*0.3;sc+=Math.random()*2;
@@ -638,7 +642,7 @@ function renderSchTable(){
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#c2410c')).join('')||dash()}</td>`;
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#d1fae5','#059669')).join('')}
-      <input type="text" class="inp text-xs py-1 mt-1" style="width:100%;min-width:80px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
+      <input type="text" class="inp text-[10px] py-0.5 mt-1" style="width:60px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
   w.innerHTML=h;
