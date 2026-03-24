@@ -15,13 +15,13 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
 <style>
-@font-face{font-family:'PaperLogy';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_PaperLogy-Rg.woff2') format('woff2');font-weight:400;font-style:normal}
-@font-face{font-family:'PaperLogy';src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_PaperLogy-Bd.woff2') format('woff2');font-weight:700;font-style:normal}
+@font-face{font-family:'Paperlogy';src:url('./fonts/Paperlogy-4Regular.ttf') format('truetype');font-weight:400;font-style:normal}
+@font-face{font-family:'Paperlogy';src:url('./fonts/Paperlogy-7Bold.ttf') format('truetype');font-weight:700;font-style:normal}
 </style>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px}
-body{font-family:'PaperLogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:#1a2332;-webkit-tap-highlight-color:transparent;font-size:17px}
+body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:#1a2332;-webkit-tap-highlight-color:transparent;font-size:19px}
 
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 1px 3px rgba(30,58,95,.05)}
 .card-s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px}
@@ -368,9 +368,9 @@ function renderRestGrid(){
   const w=document.getElementById('restGrid');w.innerHTML='';
   S.staff.forEach((s,i)=>{const col=CL[i%CL.length];
     w.innerHTML+=`<div class="flex items-center gap-2 card-s p-2.5 rounded-lg">
-      <span class="w-7 h-7 rounded flex items-center justify-center text-xs font-bold text-white" style="background:${col}">${s.code}</span>
-      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-sm py-1.5 text-center" style="width:70px" onchange="S.staff[${i}].restMin=+this.value">
-      <span class="text-xs text-[#94a3b8]">분</span></div>`;
+      <span class="w-7 h-7 rounded flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</span>
+      <input type="number" value="${s.restMin}" min="0" step="5" class="inp text-base py-1.5 text-center" style="width:90px;min-width:90px" onchange="S.staff[${i}].restMin=+this.value">
+      <span class="text-sm text-[#94a3b8] flex-shrink-0">분</span></div>`;
   });
 }
 
@@ -649,7 +649,8 @@ function renderSchTable(){
 
 function makeTag(code,si,from,bg,fg){
   const mapped=!!S.nameMap[code];const col=codeColor(code);
-  if(!bg){bg=mapped?col+'20':col+'10';fg=col;}
+  if(!bg){bg=mapped?col+'35':col+'22';fg=mapped?'#fff':col;}
+  if(mapped&&!arguments[3]){bg=col;fg='#fff';}
   return `<span class="sch-tag ${mapped?'mapped':'unmapped'}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
     style="background:${bg};color:${fg}" data-dn="${code}">${dn(code)}</span>`;
 }
