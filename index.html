@@ -628,12 +628,13 @@ function renderSchTable(){
     <th class="sch-cell text-xs text-emerald-600 font-bold">🤝지원</th></tr></thead><tbody>`;
 
   S.sch.forEach((sl,si)=>{
-    const nt=si<S.sch.length-1?S.sch[si+1].time:`${String(S.closeH).padStart(2,'0')}:00`;
+    const nt=si<S.sch.length-1?S.sch[si+1].time:fmtHour(S.closeH);
     h+=`<tr><td class="sch-cell text-xs font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10">${sl.time}~${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#fff7ed','#c2410c')).join('')||dash()}</td>`;
-    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#ecfdf5','#059669')).join('')||dash()}</td></tr>`;
+    h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#ecfdf5','#059669')).join('')}
+      <input type="text" class="inp text-xs py-1 mt-1" style="width:100%;min-width:80px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
 
