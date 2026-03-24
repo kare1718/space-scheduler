@@ -21,7 +21,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px}
-body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:#1a2332;-webkit-tap-highlight-color:transparent;font-size:24px}
+body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:#1a2332;-webkit-tap-highlight-color:transparent;font-size:19px}
 
 .card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 1px 3px rgba(30,58,95,.05)}
 .card-s{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px}
@@ -75,21 +75,24 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 
 /* 모바일 최적화 */
 @media(max-width:768px){
-  .tab-btn{padding:9px 14px;font-size:14px}
+  body{font-size:16px}
+  .tab-btn{padding:9px 14px;font-size:13px}
   .card{border-radius:12px}
-  .sch-cell{padding:6px 4px;font-size:12px}
-  .sch-tag{padding:4px 8px;font-size:11px}
-  .name-chip{padding:6px 12px;font-size:13px}
+  .sch-cell{padding:8px 5px;font-size:14px}
+  .sch-tag{padding:5px 10px;font-size:13px}
+  .name-chip{padding:7px 12px;font-size:14px}
   .inp{font-size:16px;padding:10px 12px}
   .btn{padding:10px 16px;font-size:14px}
-  .sec-title{font-size:15px}
-  .label{font-size:12px}
-  #schTable th{font-size:11px;padding:6px 3px}
-  #schTable td{padding:6px 3px}
+  .sec-title{font-size:16px}
+  .label{font-size:13px}
+  #schTable th{font-size:13px;padding:8px 4px}
+  #schTable td{padding:8px 4px;min-width:90px!important}
 }
 @media(max-width:400px){
-  .tab-btn{padding:8px 12px;font-size:13px}
-  .sch-tag{padding:3px 7px;font-size:10px}
+  body{font-size:15px}
+  .tab-btn{padding:8px 10px;font-size:12px}
+  .sch-tag{padding:4px 8px;font-size:12px}
+  #schTable td{min-width:70px!important}
 }
 </style>
 </head>
@@ -100,8 +103,8 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
   <div class="max-w-[1200px] mx-auto flex items-center justify-between flex-wrap gap-2">
     <div class="flex items-center gap-2.5">
       <div class="flex flex-col leading-tight">
-        <span class="text-base font-bold text-[#1e3a5f] tracking-wider">PREFER</span>
-        <span style="font-family:'Dancing Script',cursive;font-size:13px;color:#64748b;margin-top:-2px">STAFF scheduler</span>
+        <span class="font-bold text-[#1e3a5f] tracking-wider" style="font-size:22px">PREFER</span>
+        <span style="font-family:'Dancing Script',cursive;font-size:16px;color:#64748b;margin-top:-3px">STAFF scheduler</span>
       </div>
     </div>
     <div class="flex items-center gap-2">
