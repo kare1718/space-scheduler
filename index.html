@@ -160,25 +160,27 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
           <div id="restRecommend" class="p-2 rounded-lg bg-indigo-50 text-[11px] text-[#1e3a5f]">💡 <span id="restRecText">-</span></div>
         </div>
       </div>
-      <!-- 구역 -->
-      <div class="card-s p-3 mb-3">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-bold text-[#1e3a5f]">📍 구역</span>
-          <button onclick="addZone()" class="btn btn-p text-xs py-1 px-2">+ 추가</button>
-        </div>
-        <div id="zoneList" class="space-y-1.5"></div>
-      </div>
-      <!-- 인원 (휴게 통합) -->
-      <div class="card-s p-3">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-bold text-[#1e3a5f]">👥 인원</span>
-          <div class="flex items-center gap-2">
-            <button onclick="applyGlobalRest()" class="btn btn-s text-[11px] py-1 px-2">휴게 일괄적용</button>
-            <label class="label mb-0">총원</label>
-            <input type="number" id="inpStaffCount" value="10" min="1" max="50" class="inp" style="width:60px" onchange="rebuildStaff()">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- 구역 (좌 50%) -->
+        <div class="card-s p-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-[#1e3a5f]">📍 구역</span>
+            <button onclick="addZone()" class="btn btn-p text-xs py-1 px-2">+ 추가</button>
           </div>
+          <div id="zoneList" class="space-y-1.5"></div>
         </div>
-        <div id="staffList" class="space-y-1" style="max-height:420px;overflow-y:auto"></div>
+        <!-- 인원 (우 50%) -->
+        <div class="card-s p-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-bold text-[#1e3a5f]">👥 인원</span>
+            <div class="flex items-center gap-2">
+              <button onclick="applyGlobalRest()" class="btn btn-s text-[11px] py-1 px-2">휴게 일괄적용</button>
+              <label class="label mb-0">총원</label>
+              <input type="number" id="inpStaffCount" value="10" min="1" max="50" class="inp" style="width:60px" onchange="rebuildStaff()">
+            </div>
+          </div>
+          <div id="staffList" class="space-y-1" style="max-height:420px;overflow-y:auto"></div>
+        </div>
       </div>
     </div>
   </div>
