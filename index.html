@@ -388,7 +388,7 @@ function rebuildStaff(){
   const n=+document.getElementById('inpStaffCount').value;
   const old=S.staff.slice();S.staff=[];
   for(let i=0;i<n;i++){const code=CODES[i]||`${i+1}`;const prev=old[i];
-    S.staff.push({code,type:prev?prev.type:(i<S.fixedCount?'fixed':'rotate'),restMin:S.restMin});
+    S.staff.push({code,type:'fixed',restMin:S.restMin});
     if(!S.nameMap[code])S.nameMap[code]='';}
   renderStaff();renderRestGrid();initAtt();calcRestRec();autoSave();
 }
@@ -577,21 +577,34 @@ function genSchedule(){
       restPlan[code].sort((a,b)=>a-b);
     }
   }else{
-    for(const st of S.staff){
-      const code=st.code;const blocks=Math.round(st.restMin/S.restUnit);
-      if(blocks<=0)continue;if(blocks>=T){toast('⚠️',`${code}번 휴게>운영시간`);return;}
+    // smart (AI 분산) - 필요 블록이 많은 사람부터 배정
+    const staffByNeed=[...S.staff].map(st=>({code:st.code,blocks:Math.round(st.restMin/S.restUnit)}))
+      .filter(s=>s.blocks>0).sort((a,b)=>b.blocks-a.blocks);
+    for(const{code,blocks}of staffByNeed){
+      if(blocks>=T){toast('⚠️',`${code}번 휴게>운영시간`);return;}
       const assigned=[];
-      for(let att=0;att<300&&assigned.length<blocks;att++){
+      for(let att=0;att<500&&assigned.length<blocks;att++){
         let best=-1,bestSc=-1e9;
         for(let i=0;i<T;i++){
-          if(assigned.includes(i)||slotLoad[i]>=maxRestPerSlot)continue;
+          if(assigned.includes(i))continue;
+          if(slotLoad[i]>=maxRestPerSlot)continue;
           if(N-(slotLoad[i]+1)<minWorking)continue;
-          let sc=0;if(!assigned.some(a=>Math.abs(a-i)===1))sc+=15;
-          if(assigned.length>0)sc+=Math.min(...assigned.map(a=>Math.abs(a-i)))*3;
-          sc-=slotLoad[i]*4;sc-=Math.abs(i-T/2)*0.3;sc+=Math.random()*2;
+          let sc=0;
+          if(!assigned.some(a=>Math.abs(a-i)===1))sc+=10;
+          if(assigned.length>0)sc+=Math.min(...assigned.map(a=>Math.abs(a-i)))*2;
+          sc-=slotLoad[i]*5;
+          sc+=Math.random()*1.5;
           if(sc>bestSc){bestSc=sc;best=i;}
         }
         if(best>=0){assigned.push(best);slotLoad[best]++;}else break;
+      }
+      if(assigned.length<blocks){
+        // 제약 완화하여 재시도
+        for(let i=0;i<T&&assigned.length<blocks;i++){
+          if(!assigned.includes(i)&&slotLoad[i]<maxRestPerSlot){
+            assigned.push(i);slotLoad[i]++;
+          }
+        }
       }
       restPlan[code]=assigned.sort((a,b)=>a-b);
     }
@@ -670,7 +683,7 @@ function renderSummary(){
   S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const col=CL[i%CL.length];
     h+=`<div class="p-1.5 rounded-lg bg-white border text-[10px] flex items-center justify-between" style="border-color:${col}30">
       <span class="font-bold" style="color:${col}" data-dn="${s.code}">${dn(s.code)}</span>
-      <span class="text-[#64748b] text-right">${s.type==='fixed'?'고정':'교대'} ${wc}h 휴${rc*S.restUnit}분</span></div>`;});
+      <span class="text-[#64748b] text-right">${wc}h 휴${rc*S.restUnit}분</span></div>`;});
   h+=`</div>`;
   w.innerHTML=h;
 }
