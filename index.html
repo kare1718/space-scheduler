@@ -624,7 +624,7 @@ function renderSchTable(){
 
   S.sch.forEach((sl,si)=>{
     const nt=si<S.sch.length-1?S.sch[si+1].time:fmtHour(S.closeH);
-    h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10" style="font-size:12px;line-height:1.4">${sl.time}~<br>${nt}</td>`;
+    h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10" style="font-size:12px">${sl.time}~${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#fff7ed','#c2410c')).join('')||dash()}</td>`;
