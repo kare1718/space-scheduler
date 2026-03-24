@@ -321,13 +321,11 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function dn(code){return S.nameMap[code]||code;}
 function getPosition(code){
   if(!S.sch||!S.sch.length)return code+'번';
-  // 전체 시간대에서 가장 많이 배치된 구역 반환
-  const count={};
+  const zones=new Set();
   S.sch.forEach(sl=>{
-    for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))count[zone]=(count[zone]||0)+1;}
+    for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))zones.add(zone);}
   });
-  const best=Object.entries(count).sort((a,b)=>b[1]-a[1])[0];
-  return best?best[0]:code+'번';
+  return zones.size?[...zones].join('/'):code+'번';
 }
 function codeColor(code){const i=S.staff.findIndex(s=>s.code===code);return CL[(i>=0?i:0)%CL.length];}
 
