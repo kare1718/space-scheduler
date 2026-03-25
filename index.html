@@ -589,34 +589,46 @@ function genSchedule(){
       restPlan[code].sort((a,b)=>a-b);
     }
   }else{
-    // smart (AI 분산) - 필요 블록이 많은 사람부터 배정
+    // smart (AI 균등 분산) - 휴게를 운영시간에 골고루 배치
     const staffByNeed=[...S.staff].map(st=>({code:st.code,blocks:Math.round(st.restMin/S.restUnit)}))
       .filter(s=>s.blocks>0).sort((a,b)=>b.blocks-a.blocks);
     for(const{code,blocks}of staffByNeed){
       if(blocks>=T){toast('⚠️',`${code}번 휴게>운영시간`);return;}
+      // 이상적 위치 계산: 운영시간을 (blocks+1) 구간으로 나눠 균등 배치
+      const idealSlots=[];
+      const gap=T/(blocks+1);
+      for(let b=0;b<blocks;b++){
+        idealSlots.push(Math.round(gap*(b+1))-1);
+      }
       const assigned=[];
-      for(let att=0;att<500&&assigned.length<blocks;att++){
-        let best=-1,bestSc=-1e9;
+      // 이상적 위치에 가까운 슬롯부터 배정 (슬롯 부하 고려)
+      for(const ideal of idealSlots){
+        let best=-1,bestDist=Infinity;
+        // 이상적 위치 기준 ±범위에서 최적 슬롯 탐색
         for(let i=0;i<T;i++){
           if(assigned.includes(i))continue;
           if(slotLoad[i]>=maxRestPerSlot)continue;
           if(N-(slotLoad[i]+1)<minWorking)continue;
-          let sc=0;
-          if(!assigned.some(a=>Math.abs(a-i)===1))sc+=10;
-          if(assigned.length>0)sc+=Math.min(...assigned.map(a=>Math.abs(a-i)))*2;
-          sc-=slotLoad[i]*5;
-          sc+=Math.random()*1.5;
-          if(sc>bestSc){bestSc=sc;best=i;}
+          const dist=Math.abs(i-ideal);
+          // 이전 휴게와 너무 붙지 않도록 (최소 2슬롯 간격 선호)
+          const tooClose=assigned.some(a=>Math.abs(a-i)<=1);
+          const adjScore=dist*3+(tooClose?20:0)+slotLoad[i]*2;
+          if(adjScore<bestDist){bestDist=adjScore;best=i;}
         }
-        if(best>=0){assigned.push(best);slotLoad[best]++;}else break;
+        if(best>=0){assigned.push(best);slotLoad[best]++;}
       }
-      if(assigned.length<blocks){
-        // 제약 완화하여 재시도
-        for(let i=0;i<T&&assigned.length<blocks;i++){
-          if(!assigned.includes(i)&&slotLoad[i]<maxRestPerSlot){
-            assigned.push(i);slotLoad[i]++;
+      // 부족분 보충
+      while(assigned.length<blocks){
+        let best=-1,bestLoad=Infinity;
+        for(let i=0;i<T;i++){
+          if(assigned.includes(i))continue;
+          if(slotLoad[i]<maxRestPerSlot&&slotLoad[i]<bestLoad){
+            const tooClose=assigned.some(a=>Math.abs(a-i)<=1);
+            if(!tooClose||bestLoad===Infinity){bestLoad=slotLoad[i];best=i;}
           }
         }
+        if(best<0)break;
+        assigned.push(best);slotLoad[best]++;
       }
       restPlan[code]=assigned.sort((a,b)=>a-b);
     }
