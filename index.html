@@ -64,6 +64,12 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 
 .late-badge{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
 .ontime-badge{background:#ecfdf5;color:#059669;border:1px solid #a7f3d0;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.att-name-inp{background:#fff;border:1px solid #e2e8f0;border-radius:7px;padding:4px 8px;font-size:13px;font-weight:500;font-family:inherit;color:#1a2332;width:130px;max-width:42vw;transition:.15s}
+.att-name-inp:focus{outline:none;border-color:#1e3a5f;box-shadow:0 0 0 3px rgba(30,58,95,.08)}
+.att-name-inp::placeholder{color:#cbd5e1;font-weight:400}
+.att-sortable{cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s}
+.att-sortable:hover{color:#1e3a5f}
+.att-sort-dim{color:#cbd5e1;font-size:10px}
 
 #toast{position:fixed;bottom:20px;right:20px;z-index:200;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none}
 #toast.show{opacity:1;transform:translateY(0)}
@@ -85,6 +91,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
   .sch-tag{padding:5px 10px;font-size:13px}
   .name-chip{padding:7px 12px;font-size:14px}
   .inp{font-size:16px;padding:10px 12px}
+  .att-name-inp{font-size:16px;width:140px}
   .btn{padding:10px 16px;font-size:14px}
   .sec-title{font-size:16px}
   .label{font-size:13px}
@@ -251,6 +258,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
     <div class="flex items-center justify-between flex-wrap gap-2">
       <h2 class="text-base font-bold text-[#1e3a5f]">📝 출결 관리</h2>
       <div class="flex items-center gap-2">
+        <button onclick="bulkAttNames()" class="btn btn-s text-xs py-1.5">👥 이름 일괄 입력</button>
         <label class="label mb-0">기준</label>
         <input type="time" id="attendBase" value="10:30" class="inp" style="width:110px" onchange="renderAtt()">
         <button onclick="resetAtt()" class="btn btn-d text-xs py-1.5">↺</button>
@@ -912,7 +920,61 @@ function resetAtt(){S.attend={};initAtt();renderAtt();autoSave();toast('↺','�
 function checkIn(code){const now=new Date();S.attend[code]={in:true,time:`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,mod:false};renderAtt();autoSave();toast('✅',`${dn(code)} 출근`);}
 function editAtt(code){const cur=S.attend[code]?.time||'';const v=prompt(`${dn(code)} 출근 시간 (HH:MM):`,cur);if(v&&/^\d{2}:\d{2}$/.test(v)){S.attend[code]={in:true,time:v,mod:true};renderAtt();autoSave();}}
 function cancelIn(code){S.attend[code]={in:false,time:null,mod:false};renderAtt();autoSave();}
+// ===== 출결 탭에서 이름 직접 입력 (nameMap 갱신 → 스케줄·지각자에도 반영) =====
+function setAttName(code,val){S.nameMap[code]=val;autoSave();}            // 입력 중: 포커스 유지 위해 재렌더 안 함
+function commitAttName(code){                                            // 입력 확정(blur): 정리 + 이름 목록 동기화
+  const name=(S.nameMap[code]||'').trim();S.nameMap[code]=name;
+  if(name&&!S.nameEntries.some(e=>e.name===name))S.nameEntries.push({id:S.nextNameId++,name});
+  autoSave();
+}
+function attNameNav(e,idx){                                              // Enter → 다음 행 이름칸으로 이동
+  if(e.key!=='Enter')return;e.preventDefault();
+  const inps=document.querySelectorAll('#attList .att-name-inp');
+  const nx=inps[idx+1];if(nx){nx.focus();if(nx.select)nx.select();}else e.target.blur();
+}
+function bulkAttNames(){                                                 // 이름 일괄 붙여넣기 → 1번부터 순서대로 배정
+  if(!S.staff.length){toast('⚠️','먼저 설정에서 총원을 정해주세요');return;}
+  const raw=prompt('이름을 줄바꿈 또는 쉼표로 구분해 붙여넣으세요.\n위에서부터 순서대로 1번, 2번… 에 배정됩니다.');
+  if(raw==null)return;
+  const names=raw.split(/[\t\n,]+/).map(s=>s.trim()).filter(Boolean);
+  if(!names.length){toast('⚠️','이름을 인식할 수 없습니다');return;}
+  S.staff.forEach((s,i)=>{if(i<names.length){S.nameMap[s.code]=names[i];
+    if(!S.nameEntries.some(e=>e.name===names[i]))S.nameEntries.push({id:S.nextNameId++,name:names[i]});}});
+  renderAtt();autoSave();
+  toast('✅',`${Math.min(names.length,S.staff.length)}명 이름 배정`);
+}
 function lateMin(t,b){if(!t)return 0;const[ah,am]=t.split(':').map(Number);const[bh,bm]=b.split(':').map(Number);return(ah*60+am)-(bh*60+bm);}
+// ===== 출결 정렬 (열 머리글 클릭: 오름차순 ▲ → 내림차순 ▼ → 번호순 기본) =====
+let attSort={key:null,dir:'asc'};   // key:null=번호순(기본), 'name'|'status'|'time'|'late'
+function setAttSort(key){
+  if(attSort.key!==key){attSort.key=key;attSort.dir='asc';}
+  else if(attSort.dir==='asc'){attSort.dir='desc';}
+  else{attSort.key=null;attSort.dir='asc';}   // 같은 열 3번째 클릭 → 번호순 복귀
+  renderAtt();
+}
+function attSortArrow(key){return attSort.key===key?(attSort.dir==='asc'?' ▲':' ▼'):' <span class="att-sort-dim">↕</span>';}
+function attSortedStaff(){
+  const arr=S.staff.slice();const{key,dir}=attSort;
+  if(!key)return arr;
+  const base=document.getElementById('attendBase').value||'10:30';
+  const blank=key==='name'||key==='time';
+  const val=s=>{const a=S.attend[s.code]||{};
+    if(key==='name')return (S.nameMap[s.code]||'').trim();
+    if(key==='status')return a.in?1:0;
+    if(key==='time')return a.in&&a.time?a.time:'';
+    if(key==='late')return a.in?lateMin(a.time,base):-1;
+    return 0;};
+  arr.sort((x,y)=>{
+    const xv=val(x),yv=val(y);
+    if(blank){const xe=xv==='',ye=yv==='';
+      if(xe&&ye)return Number(x.code)-Number(y.code);
+      if(xe)return 1;if(ye)return -1;}            // 빈 값(미입력·미출근)은 항상 뒤로
+    let c=key==='name'?xv.localeCompare(yv,'ko'):key==='time'?xv.localeCompare(yv):xv-yv;
+    if(c===0)c=Number(x.code)-Number(y.code);     // 동률이면 번호순
+    return dir==='desc'?-c:c;
+  });
+  return arr;
+}
 function renderAtt(){
   const base=document.getElementById('attendBase').value||'10:30';
   const lates=S.staff.filter(s=>{const a=S.attend[s.code];return a&&a.in&&lateMin(a.time,base)>0;});
@@ -925,10 +987,10 @@ function renderAtt(){
         <span class="text-xs text-[#64748b]">${a.time}</span></div>`;});
   }else ls.classList.add('hidden');
   const w=document.getElementById('attList');
-  let h=`<table class="w-full"><thead><tr><th class="sch-cell text-left text-xs text-[#64748b]">이름</th><th class="sch-cell text-xs text-[#64748b]">상태</th><th class="sch-cell text-xs text-[#64748b]">시간</th><th class="sch-cell text-xs text-[#64748b]">지각</th><th class="sch-cell text-xs text-[#64748b]">관리</th></tr></thead><tbody>`;
-  S.staff.forEach((s,i)=>{const a=S.attend[s.code]||{in:false};const col=CL[i%CL.length];const late=a.in&&lateMin(a.time,base)>0;const lm=a.in?lateMin(a.time,base):0;
+  let h=`<table class="w-full"><thead><tr><th class="sch-cell text-left text-xs text-[#64748b] att-sortable" onclick="setAttSort('name')">이름${attSortArrow('name')}</th><th class="sch-cell text-xs text-[#64748b] att-sortable" onclick="setAttSort('status')">상태${attSortArrow('status')}</th><th class="sch-cell text-xs text-[#64748b] att-sortable" onclick="setAttSort('time')">시간${attSortArrow('time')}</th><th class="sch-cell text-xs text-[#64748b] att-sortable" onclick="setAttSort('late')">지각${attSortArrow('late')}</th><th class="sch-cell text-xs text-[#64748b]">관리</th></tr></thead><tbody>`;
+  attSortedStaff().forEach((s,i)=>{const a=S.attend[s.code]||{in:false};const col=codeColor(s.code);const late=a.in&&lateMin(a.time,base)>0;const lm=a.in?lateMin(a.time,base):0;
     h+=`<tr class="hover:bg-slate-50">
-      <td class="sch-cell text-left"><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white" style="background:${col}">${s.code}</div><span class="text-sm font-medium">${dn(s.code)}</span>${a.mod?'<span class="text-[9px] text-amber-600">(수정)</span>':''}</div></td>
+      <td class="sch-cell text-left"><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</div><input type="text" class="att-name-inp" value="${(S.nameMap[s.code]||'').replace(/"/g,'&quot;')}" placeholder="이름 입력" lang="ko" oninput="setAttName('${s.code}',this.value)" onchange="commitAttName('${s.code}')" onkeydown="attNameNav(event,${i})">${a.mod?'<span class="text-[9px] text-amber-600">(수정)</span>':''}</div></td>
       <td class="sch-cell text-center">${a.in?'<span class="ontime-badge">출근</span>':'<span class="text-[#94a3b8] text-xs">-</span>'}</td>
       <td class="sch-cell text-center font-mono text-sm">${a.time||'-'}</td>
       <td class="sch-cell text-center">${a.in?(late?`<span class="late-badge">+${lm}분</span>`:'<span class="ontime-badge">정시</span>'):'-'}</td>
