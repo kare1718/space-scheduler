@@ -264,6 +264,33 @@ body.dark #schTable tbody tr:hover td{background:#2d3b50}
 body.dark .sch-cell{border-color:#334155}
 body.dark #schTable td.sch-cell:first-child{border-right-color:#475569}
 body.dark .toast,body.dark #toast>div{background:#243144}
+
+/* ===== 전체 글씨 2pt 축소 (컴팩트) ===== */
+body{font-size:13px}
+.sec-title{font-size:14px}
+.label{font-size:12px}
+.btn,.icon-btn,.tab-btn,.topbar-sel{font-size:12px}
+.inp{font-size:13px}
+.xls{font-size:12px}
+.xls-h{font-size:11px}
+.xls-name-inp{font-size:13px}
+.xls-time{font-size:12px}
+.xls-sess-label{font-size:11px}
+.xls-sess-base input,.xls-sess-date input{font-size:10px}
+.xls-total-min{font-size:13px}
+.name-chip{font-size:12px}
+.sch-cell{font-size:12px}
+.sch-tag{font-size:10px}
+.text-base{font-size:14px!important}
+.text-sm{font-size:12px!important}
+.text-xs{font-size:11px!important}
+@media(max-width:768px){
+  body{font-size:13px}
+  .inp{font-size:14px}
+  .xls-name-inp,.att-name-inp{font-size:14px}
+  .xls-time{font-size:14px}
+  .xls-sess-base input{font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -286,9 +313,9 @@ body.dark .toast,body.dark #toast>div{background:#243144}
         <option value="">📂 저장본 선택…</option>
       </select>
       <button onclick="openSaveModal()" class="icon-btn p" title="현재 상태 저장">💾 저장</button>
-      <button id="darkBtn" onclick="toggleDark()" class="icon-btn" title="다크모드 전환">🌙</button>
+      <button id="darkBtn" onclick="toggleDark()" class="icon-btn" title="밝게/어둡게 화면 전환">🌙 다크</button>
       <div class="relative" id="exportWrap" style="display:none">
-        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="icon-btn" title="근무표 내보내기">📥</button>
+        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="icon-btn" title="근무표를 이미지/PDF로 저장">📥 내보내기</button>
         <div id="exportMenu" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" style="min-width:120px">
           <button onclick="downloadPNG();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📸 PNG 저장</button>
           <button onclick="downloadPDF();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📄 PDF 저장</button>
@@ -414,7 +441,7 @@ body.dark .toast,body.dark #toast>div{background:#243144}
         <button onclick="addPerson()" class="icon-btn p">＋ 인원</button>
         <button onclick="addSession()" class="icon-btn p">＋ 회차</button>
         <button onclick="openAttNamePanel()" class="icon-btn">👥 명단</button>
-        <button onclick="resetAttAll()" class="icon-btn" title="출결 기록만 초기화">↺</button>
+        <button onclick="resetAttAll()" class="icon-btn" title="입력한 도착 시각만 모두 지움(이름·회차 유지)">↺ 기록 초기화</button>
       </div>
     </div>
   </div>
@@ -568,18 +595,27 @@ function calcRestRec(){
   const totalH=S.closeH-S.openH;
   const N=S.staff.length||+document.getElementById('inpStaffCount').value;
   const spare=N-S.fixedCount;
+  const unit=S.restUnit||60;
   const legalMin=Math.floor(totalH/4)*30;
   const maxRestMin=spare>0?Math.floor((spare*totalH)/N)*60:0;
-  const rec=Math.max(legalMin,Math.floor(maxRestMin/5)*5);
+  let rec=Math.max(legalMin,Math.floor(maxRestMin/5)*5);
+  rec=Math.max(unit,Math.round(rec/unit)*unit);   // 휴게 단위(슬롯) 배수로 맞춤 → '개인 휴게' 오판 방지
   const el=document.getElementById('restRecText');
   if(el){
     if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음</span>`;
-    else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정 ${legalMin}분, 여유 ${spare}명)`;
+    else el.innerHTML=`1인당 최대 <b>${rec}분</b> (휴게 단위 ${unit}분, 여유 ${spare}명)`;
   }
   // 추천값만 표시, 사용자 설정은 건드리지 않음 (일괄적용 버튼으로만 반영)
 }
 
-function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
+function applyGlobalRest(){
+  const unit=S.restUnit||60;
+  let v=+document.getElementById('inpRest').value||0;
+  v=Math.round(v/unit)*unit;                       // 휴게 단위 배수로 스냅(슬롯이 정수여야 오류 없음)
+  document.getElementById('inpRest').value=v;S.restMin=v;
+  S.staff.forEach(s=>s.restMin=v);renderRestGrid();autoSave();
+  toast('✅',`전체 ${v}분 적용 (휴게 단위 ${unit}분 기준)`);
+}
 
 function renderRestGrid(){/* 인원 목록에 통합됨 */}
 
@@ -1322,7 +1358,7 @@ function validateRules(){
   const r1fail=S.sch.filter(sl=>Object.values(sl.pa).flat().length<S.fixedCount);
   const r1={name:'상시 인원',ok:!r1fail.length,reason:r1fail.length?`${r1fail[0].time} 등 ${r1fail.length}개 시간대 미달`:''};
   // 개인 휴게
-  const r2fail=S.staff.filter(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc*S.restUnit!==s.restMin;});
+  const r2fail=S.staff.filter(s=>{const need=Math.round((s.restMin||0)/S.restUnit);const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc!==need;});
   const r2={name:'개인 휴게',ok:!r2fail.length,reason:r2fail.length?`${r2fail.map(s=>dn(s.code)).slice(0,3).join(',')} 등 ${r2fail.length}명 미충족`:''};
   // 연속 휴게
   const r3fail=S.staff.filter(s=>{let c=0;for(const sl of S.sch){if(sl.rest.includes(s.code)){c++;if(c>=3)return true;}else c=0;}return false;});
@@ -1351,7 +1387,7 @@ function validateRules(){
     analysis.push(`⚠️ <b>상시 인원 미달:</b> ${worst.time} 시간대에 근무 인원이 ${wCount}명으로 상시 최소 ${S.fixedCount}명에 ${S.fixedCount-wCount}명 부족합니다. 총원을 늘리거나 1인 휴게 시간을 줄여 동시 휴게 인원을 낮추세요.`);
   }
   if(!r2.ok){
-    const names=r2fail.slice(0,2).map(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dn(s.code)}(${rc*S.restUnit}/${s.restMin}분)`;}).join(', ');
+    const names=r2fail.slice(0,2).map(s=>{const need=Math.round((s.restMin||0)/S.restUnit);const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dn(s.code)}(${rc*S.restUnit}/${need*S.restUnit}분)`;}).join(', ');
     analysis.push(`⚠️ <b>개인 휴게 미충족:</b> ${names} 등이 설정된 휴게시간을 채우지 못했습니다. 운영시간 대비 인원이 부족하여 휴게 배정 여유가 없습니다. 총원을 늘리거나 휴게시간을 줄여보세요.`);
   }
   if(!r3.ok){
@@ -1551,7 +1587,7 @@ function renderAtt(){
   }
   people.forEach((s,ri)=>{
     h+='<tr>';
-    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in"><span class="xls-no" style="background:${codeColor(s.code)}">${s.code}</span><input class="xls-name-inp" value="${(S.nameMap[s.code]||'').replace(/"/g,'&quot;')}" placeholder="이름" lang="ko" oninput="setAttName('${s.code}',this.value)" onchange="commitAttName('${s.code}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${s.code}')" title="삭제">✕</button></div></td>`;
+    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in"><span class="xls-no" style="background:${codeColor(s.code)}">${s.code}</span><input class="xls-name-inp" value="${(S.nameMap[s.code]||'').replace(/"/g,'&quot;')}" placeholder="이름" lang="ko" oninput="setAttName('${s.code}',this.value)" onchange="commitAttName('${s.code}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${s.code}')" title="이 인원 삭제">✕</button></div></td>`;
     sess.forEach(ss=>{
       const r=(ss.recs&&ss.recs[s.code])||{};const t=r.time||'';
       const lm=t?lateMin(t,ss.base):null;
@@ -1785,7 +1821,7 @@ const LS_THEME='spaceSch_theme';
 function applyTheme(t){
   const d=t==='dark';
   document.body.classList.toggle('dark',d);
-  const b=document.getElementById('darkBtn');if(b)b.textContent=d?'☀️':'🌙';
+  const b=document.getElementById('darkBtn');if(b)b.textContent=d?'☀️ 라이트':'🌙 다크';
   const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0f172a':'#1e3a5f');
   try{localStorage.setItem(LS_THEME,t);}catch(e){}
 }
