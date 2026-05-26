@@ -113,8 +113,8 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .icon-btn.p{background:#1e3a5f;color:#fff}.icon-btn.p:hover{background:#15304f}
 
 /* ===== 엑셀형 출결 그리드 ===== */
-.xls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(30,58,95,.05)}
-.xls{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+.xls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(30,58,95,.05);width:fit-content;max-width:100%}
+.xls{border-collapse:separate;border-spacing:0;width:max-content;max-width:none;font-size:13px}
 .xls th,.xls td{border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0}
 .xls-h{background:#eef2f7;color:#475569;font-weight:700;font-size:12px;padding:6px 8px;border-bottom:2px solid #cbd5e1!important;white-space:nowrap;position:sticky;top:0;z-index:3;vertical-align:top}
 .xls-c{padding:3px 5px;text-align:center;vertical-align:middle;background:#fff}
@@ -136,8 +136,8 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .xls-del{flex-shrink:0;width:22px;height:22px;border:none;background:transparent;color:#cbd5e1;border-radius:6px;cursor:pointer;font-size:12px;line-height:1}
 .xls-del:hover{background:#fef2f2;color:#dc2626}
 .xls-sess{min-width:138px}
-.xls-sess-top{display:flex;align-items:center;gap:2px;margin-bottom:3px}
-.xls-sess-label{flex:1;min-width:34px;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 5px;font-size:12px;font-weight:700;font-family:inherit;color:#1e3a5f;text-align:center}
+.xls-sess-top{display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:3px}
+.xls-sess-label{flex:none;width:94px;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 5px;font-size:12px;font-weight:700;font-family:inherit;color:#1e3a5f;text-align:center}
 .xls-sess-label:focus{outline:none;border-color:#1e3a5f}
 .xls-sess-sort{flex-shrink:0;width:18px;height:18px;border:1px solid #e2e8f0;background:#fff;color:#94a3b8;border-radius:5px;cursor:pointer;font-size:10px;line-height:1;padding:0}
 .xls-sess-sort:hover{border-color:#1e3a5f;color:#1e3a5f}
@@ -317,6 +317,7 @@ body{font-size:13px}
       <div class="relative" id="exportWrap" style="display:none">
         <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="icon-btn" title="근무표를 이미지/PDF로 저장">📥 내보내기</button>
         <div id="exportMenu" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" style="min-width:120px">
+          <button onclick="exportScheduleCSV();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📊 스프레드시트(CSV)</button>
           <button onclick="downloadPNG();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📸 PNG 저장</button>
           <button onclick="downloadPDF();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📄 PDF 저장</button>
         </div>
@@ -441,6 +442,7 @@ body{font-size:13px}
         <button onclick="addPerson()" class="icon-btn p">＋ 인원</button>
         <button onclick="addSession()" class="icon-btn p">＋ 회차</button>
         <button onclick="openAttNamePanel()" class="icon-btn">👥 명단</button>
+        <button onclick="exportAttendanceCSV()" class="icon-btn" title="엑셀·구글시트로 내보내기(CSV)">📊 시트</button>
         <button onclick="resetAttAll()" class="icon-btn" title="입력한 도착 시각만 모두 지움(이름·회차 유지)">↺ 기록 초기화</button>
       </div>
     </div>
@@ -1352,6 +1354,44 @@ async function downloadPDF(){
   toast('✅','PDF 완료');
 }
 
+// ===== 스프레드시트(CSV) 내보내기 (엑셀·구글시트에서 열림) =====
+function csvEscape(v){v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function downloadCSV(filename,rows){
+  const csv='﻿'+rows.map(r=>r.map(csvEscape).join(',')).join('\r\n');   // BOM → 엑셀 한글 깨짐 방지
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},120);
+}
+function dateTag(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function exportAttendanceCSV(){
+  ensureSessions();const sess=S.sessions;
+  const header=['번호','이름'];
+  sess.forEach((ss,i)=>{const lbl=ss.label||`${i+1}회차`;const base=ss.base?`(기준 ${ss.base})`:'';header.push(`${lbl} 도착${base}`,`${lbl} 지각(분)`);});
+  header.push('총 지각(분)','지각 횟수');
+  const rows=[header];
+  attSortedStaff().forEach(s=>{
+    const row=[s.code,S.nameMap[s.code]||''];
+    sess.forEach(ss=>{const r=(ss.recs&&ss.recs[s.code])||{};const t=r.time||'';const lm=t?lateMin(t,ss.base):0;row.push(t,t?(lm>0?lm:0):'');});
+    const tot=personLateTotal(s.code);row.push(tot.min,tot.count);
+    rows.push(row);
+  });
+  downloadCSV(`출결_${dateTag()}.csv`,rows);toast('📊','출결 시트 저장');
+}
+function exportScheduleCSV(){
+  if(!S.sch||!S.sch.length){toast('⚠️','먼저 근무표를 자동 생성하세요');return;}
+  const zoneNames=S.zones.map(z=>z.name);
+  const rows=[['시간',...zoneNames,'☕휴게','지원']];
+  S.sch.forEach(sl=>{
+    const row=[sl.time];
+    zoneNames.forEach(z=>row.push((sl.pa[z]||[]).map(c=>dn(c)).join(' ')));
+    row.push((sl.rest||[]).map(c=>dn(c)).join(' '));
+    row.push((sl.support||[]).map(c=>dn(c)).join(' '));
+    rows.push(row);
+  });
+  downloadCSV(`근무표_${dateTag()}.csv`,rows);toast('📊','근무표 시트 저장');
+}
+
 // ===== RULES =====
 function validateRules(){
   if(!S.sch)return;
@@ -1581,7 +1621,7 @@ function renderAtt(){
   sess.forEach((ss,si)=>{
     const sk='sess:'+ss.id, sortOn=attSort.key===sk;
     const sortIco=sortOn?(attSort.dir==='asc'?'▲':'▼'):'⇅';
-    h+=`<th class="xls-h xls-sess"><div class="xls-sess-top"><input class="xls-sess-label" value="${esc(ss.label||'')}" placeholder="${si+1}회차" oninput="setSessionLabel('${ss.id}',this.value)"><button class="xls-sess-sort${sortOn?' on':''}" onclick="setAttSort('${sk}')" title="이 회차 도착시각순 정렬">${sortIco}</button>${sess.length>1?`<button class="xls-sess-del" onclick="removeSession('${ss.id}')" title="회차 삭제">✕</button>`:''}</div><div class="xls-sess-base">기준<input type="time" value="${ss.base||'09:00'}" onchange="setSessionBase('${ss.id}',this.value)"></div><div class="xls-sess-date"><input type="date" value="${ss.date||''}" onchange="setSessionDate('${ss.id}',this.value)" title="회차 날짜"></div></th>`;
+    h+=`<th class="xls-h xls-sess"><div class="xls-sess-top"><input class="xls-sess-label" size="2" value="${esc(ss.label||'')}" placeholder="${si+1}회차" oninput="setSessionLabel('${ss.id}',this.value)"><button class="xls-sess-sort${sortOn?' on':''}" onclick="setAttSort('${sk}')" title="이 회차 도착시각순 정렬">${sortIco}</button>${sess.length>1?`<button class="xls-sess-del" onclick="removeSession('${ss.id}')" title="회차 삭제">✕</button>`:''}</div><div class="xls-sess-base">기준<input type="time" value="${ss.base||'09:00'}" onchange="setSessionBase('${ss.id}',this.value)"></div><div class="xls-sess-date"><input type="date" value="${ss.date||''}" onchange="setSessionDate('${ss.id}',this.value)" title="회차 날짜"></div></th>`;
   });
   h+=`<th class="xls-h xls-add-col"><button class="xls-addsess" onclick="addSession()" title="회차 추가">＋</button></th>`;
   h+=`<th class="xls-h xls-sticky-r xls-total-h" onclick="setAttSort('late')">총 지각${attSortArrow('late')}</th>`;
