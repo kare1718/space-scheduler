@@ -10,7 +10,8 @@ services:
     region: singapore        # 한국과 가까운 리전 (oregon/frankfurt 등으로 변경 가능)
     buildCommand: npm install
     startCommand: node server.js
-    healthCheckPath: /api/health
+    # healthCheckPath 제거: 디스크 서비스에서 HTTP 헬스체크 1회 실패→느린 재시작→재시작 루프(간헐 404) 유발.
+    # TCP 포트 체크만 사용해 안정화. (/api/health 엔드포인트는 server.js 에 남겨 수동 점검용으로 유지)
     autoDeploy: true          # master 에 push 하면 자동 재배포
     envVars:
       - key: DATA_DIR
