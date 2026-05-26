@@ -548,8 +548,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   refreshSaveSelect();
   refreshAttNamePanel();        // 이름 없으면 명단 펼침, 있으면 접힘
   _initDone=true;
-  setInterval(periodicAutoSave,30000);     // 30초 자동 저장
-  if(!loaded){ cloudPull(); } else { cloudPullSlots().then(()=>refreshSaveSelect()); }
+  setInterval(periodicAutoSave,30000);     // 30초 자동 저장 + 동기화
+  cloudSync().then(()=>refreshSaveSelect());                        // 시작 시 서버와 동기화(연결 시)
+  window.addEventListener('focus',cloudSync);                       // 앱으로 돌아올 때 최신본 가져오기
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)cloudSync();});
 });
 
 // ===== UI HELPERS =====
@@ -1759,6 +1761,7 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){
 
 function autoSave(){
   if(!_initDone)return;
+  markUpdated();
   pushUndo();
   try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
   schedulePush();
@@ -1771,7 +1774,7 @@ function autoLoad(){
 function periodicAutoSave(){
   if(!_initDone)return;
   try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
-  schedulePush();
+  cloudSync();   // 서버 연결 시 양방향 동기화(입력 중이면 가져오기 보류). 미연결이면 조용히 무시
   const el=document.getElementById('autoSaveInd');
   if(el)el.textContent=`⏱ 자동 저장됨 · ${new Date().toLocaleTimeString('ko-KR')}`;
 }
@@ -1837,7 +1840,7 @@ function openSaveModal(){
   document.getElementById('saveModal').classList.remove('hidden');
   const cs=document.getElementById('cloudStatus');if(cs)cs.textContent='서버 동기화 확인 중…';
   renderSaveList();refreshSaveSelect();
-  cloudPullSlots().then(ok=>{if(cs)cs.textContent=ok?'☁ 서버에 자동 저장됩니다 · 다른 기기에서도 불러올 수 있어요':'⚠ 서버 연결 안 됨 — 이 기기에만 저장됩니다';renderSaveList();refreshSaveSelect();});
+  cloudSync().then(r=>{if(cs&&r===false)cs.textContent='⚠ 서버 연결 안 됨 — 이 기기에만 저장 (백업 파일로 옮기거나 Render 연결 시 자동 동기화)';renderSaveList();refreshSaveSelect();});
 }
 function closeSaveModal(){document.getElementById('saveModal').classList.add('hidden');}
 
@@ -1899,42 +1902,51 @@ function renderSaveList(){
   });
   w.innerHTML=h;
 }
-async function cloudPullSlots(){
-  try{
-    const res=await fetch('/api/data');if(!res.ok)return false;
-    const data=await res.json();
-    if(data&&Array.isArray(data.slots)&&data.slots.length){
-      const ex=getSlots();const ids=new Set(ex.map(s=>s.id));const keys=new Set(ex.map(s=>s.name+'|'+s.eventDate));let add=0;
-      normalizeSlotsInPlace(data.slots).forEach(sl=>{if(!ids.has(sl.id)&&!keys.has(sl.name+'|'+sl.eventDate)){ex.push(sl);add++;}});
-      if(add)setSaveSlots(ex);
-    }
-    return true;
-  }catch(e){return false;}
-}
-
-// ===== AUTO CLOUD =====
-let _pushTimer=null;
+// ===== 클라우드 동기화 (서버 연결 시: 최신 시각 기준 양방향 자동 연동, last-write-wins) =====
+const LS_UPDATED='spaceSch_updated';
+let _updated='';try{_updated=localStorage.getItem(LS_UPDATED)||'';}catch(e){}
+// 기존 사용자(타임스탬프 없음 + 로컬 데이터 있음) → 현재 시각으로 간주(빈/구 서버가 로컬을 덮어쓰지 않게)
+try{ if(!_updated && localStorage.getItem(LS_AUTO)){ _updated=new Date().toISOString(); localStorage.setItem(LS_UPDATED,_updated); } }catch(e){}
+function markUpdated(){_updated=new Date().toISOString();try{localStorage.setItem(LS_UPDATED,_updated);}catch(e){}}
+function setCloudStatus(msg){const el=document.getElementById('cloudStatus');if(el)el.textContent=msg;}
+let _pushTimer=null,_syncing=false;
 async function cloudPush(){
   try{
-    const payload={v:1,current:getSerializableState(),slots:getSaveSlots(),updated:new Date().toISOString()};
-    await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  }catch(e){}
-}
-async function cloudPull(){
-  try{
-    const res=await fetch('/api/data');if(!res.ok)return false;
-    const data=await res.json();
-    if(!data.v||!data.current)return false;
-    applyState(data.current);autoSave();
-    if(data.slots?.length){
-      const existing=getSlots();const keys=new Set(existing.map(s=>s.name+'|'+s.eventDate));
-      normalizeSlotsInPlace(data.slots).forEach(sl=>{if(!keys.has(sl.name+'|'+sl.eventDate))existing.unshift(sl);});
-      setSaveSlots(existing);
-    }
-    renderSaveList();refreshSaveSelect();return true;
+    const payload={v:1,current:getSerializableState(),slots:getSaveSlots(),updated:_updated||new Date().toISOString()};
+    const res=await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    return !!(res&&res.ok);
   }catch(e){return false;}
 }
 function schedulePush(){clearTimeout(_pushTimer);_pushTimer=setTimeout(()=>cloudPush(),2000);}
+async function cloudSync(){
+  if(_syncing)return false;_syncing=true;
+  try{
+    let data;
+    try{const res=await fetch('/api/data');if(!res||!res.ok){return false;}data=await res.json();}catch(e){return false;}
+    // 저장본(슬롯) 병합: 서버에만 있는 항목을 로컬로
+    if(data&&Array.isArray(data.slots)&&data.slots.length){
+      const ex=getSlots();const keys=new Set(ex.map(s=>s.name+'|'+s.eventDate));let add=0;
+      normalizeSlotsInPlace(data.slots).forEach(sl=>{if(!keys.has(sl.name+'|'+sl.eventDate)){ex.push(sl);add++;}});
+      if(add){setSaveSlots(ex);renderSaveList();refreshSaveSelect();}
+    }
+    const sUpd=data&&data.updated,sCur=data&&data.current;
+    if(sCur&&sCur.zones&&sUpd&&(!_updated||sUpd>_updated)){       // 서버가 더 최신 → 가져오기
+      const editing=document.activeElement&&/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+      if(editing)return 'deferred';                               // 입력 중이면 덮어쓰기 보류(다음 동기화 때)
+      applyState(sCur);_updated=sUpd;
+      try{localStorage.setItem(LS_UPDATED,_updated);localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
+      renderSaveList();refreshSaveSelect();refreshAttNamePanel();
+      setCloudStatus('☁ 서버 최신본 불러옴 · '+new Date().toLocaleTimeString('ko-KR'));
+      return 'pulled';
+    }else if(_updated&&(!sUpd||_updated>sUpd)){                   // 로컬이 더 최신 → 올리기
+      const ok=await cloudPush();
+      setCloudStatus(ok?('☁ 서버에 저장됨 · '+new Date().toLocaleTimeString('ko-KR')):'⚠ 서버 연결 안 됨 — 이 기기에만 저장');
+      return ok?'pushed':false;
+    }
+    setCloudStatus('☁ 서버와 동기화됨 · '+new Date().toLocaleTimeString('ko-KR'));
+    return 'insync';
+  }finally{_syncing=false;}
+}
 
 // ===== 다크모드 =====
 const LS_THEME='spaceSch_theme';
