@@ -133,14 +133,19 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .xls-name-inp::placeholder{color:#cbd5e1;font-weight:400}
 .xls-del{flex-shrink:0;width:22px;height:22px;border:none;background:transparent;color:#cbd5e1;border-radius:6px;cursor:pointer;font-size:12px;line-height:1}
 .xls-del:hover{background:#fef2f2;color:#dc2626}
-.xls-sess{min-width:96px}
+.xls-sess{min-width:118px}
 .xls-sess-top{display:flex;align-items:center;gap:2px;margin-bottom:3px}
-.xls-sess-label{flex:1;min-width:40px;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 5px;font-size:12px;font-weight:700;font-family:inherit;color:#1e3a5f;text-align:center}
+.xls-sess-label{flex:1;min-width:34px;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 5px;font-size:12px;font-weight:700;font-family:inherit;color:#1e3a5f;text-align:center}
 .xls-sess-label:focus{outline:none;border-color:#1e3a5f}
+.xls-sess-sort{flex-shrink:0;width:18px;height:18px;border:1px solid #e2e8f0;background:#fff;color:#94a3b8;border-radius:5px;cursor:pointer;font-size:10px;line-height:1;padding:0}
+.xls-sess-sort:hover{border-color:#1e3a5f;color:#1e3a5f}
+.xls-sess-sort.on{background:#1e3a5f;color:#fff;border-color:#1e3a5f}
 .xls-sess-del{flex-shrink:0;width:18px;height:18px;border:none;background:transparent;color:#cbd5e1;border-radius:5px;cursor:pointer;font-size:11px}
 .xls-sess-del:hover{background:#fef2f2;color:#dc2626}
 .xls-sess-base{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;color:#94a3b8;font-weight:500}
 .xls-sess-base input{background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 3px;font-size:11px;font-family:inherit;color:#475569;width:74px}
+.xls-sess-date{margin-top:3px;text-align:center}
+.xls-sess-date input{width:106px;max-width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 3px;font-size:10px;font-family:inherit;color:#64748b}
 .xls-time{width:74px;background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 2px;font-size:13px;font-family:'Paperlogy',monospace;text-align:center;color:#334155}
 .xls-time:hover{border-color:#e2e8f0;background:#fff}
 .xls-time:focus{outline:none;border-color:#1e3a5f;background:#fff}
@@ -174,6 +179,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
   .xls-name-inp{font-size:16px}
   .xls-time{font-size:16px;width:78px}
   .xls-sess-base input{font-size:14px}
+  .xls-sess-date input{font-size:13px}
   .topbar-sel{max-width:130px}
   .modal-card{margin-top:12px}
 }
@@ -1301,6 +1307,7 @@ function removeSession(id){
 }
 function setSessionLabel(id,v){const ss=S.sessions.find(s=>s.id===id);if(ss){ss.label=v;dsave();}}
 function setSessionBase(id,v){const ss=S.sessions.find(s=>s.id===id);if(ss){ss.base=v||'09:00';renderAtt();autoSave();}}
+function setSessionDate(id,v){const ss=S.sessions.find(s=>s.id===id);if(ss){ss.date=v;dsave();}}
 function setArrival(id,code,v){
   const ss=S.sessions.find(s=>s.id===id);if(!ss)return;
   if(v)ss.recs[code]={time:v};else delete ss.recs[code];
@@ -1379,6 +1386,13 @@ function attSortedStaff(){
       if(!xn&&!yn)return Number(x.code)-Number(y.code);
       if(!xn)return 1;if(!yn)return -1;
       c=xn.localeCompare(yn,'ko');
+    }else if(key.indexOf('sess:')===0){       // 특정 회차 도착시각순 (미입력은 뒤로)
+      const sid=key.slice(5),ss=S.sessions.find(z=>z.id===sid);
+      const tx=(ss&&ss.recs&&ss.recs[x.code]&&ss.recs[x.code].time)||'';
+      const ty=(ss&&ss.recs&&ss.recs[y.code]&&ss.recs[y.code].time)||'';
+      if(!tx&&!ty)return Number(x.code)-Number(y.code);
+      if(!tx)return 1;if(!ty)return -1;
+      c=tx.localeCompare(ty);
     }else c=personLateTotal(x.code).min-personLateTotal(y.code).min;
     if(c===0)c=Number(x.code)-Number(y.code);
     return dir==='desc'?-c:c;
@@ -1394,7 +1408,9 @@ function renderAtt(){
   let h='<div class="xls-scroll"><table class="xls"><thead><tr>';
   h+=`<th class="xls-h xls-sticky-l xls-name-h" onclick="setAttSort('name')">이름${attSortArrow('name')}</th>`;
   sess.forEach((ss,si)=>{
-    h+=`<th class="xls-h xls-sess"><div class="xls-sess-top"><input class="xls-sess-label" value="${esc(ss.label||'')}" placeholder="${si+1}회차" oninput="setSessionLabel('${ss.id}',this.value)">${sess.length>1?`<button class="xls-sess-del" onclick="removeSession('${ss.id}')" title="회차 삭제">✕</button>`:''}</div><div class="xls-sess-base">기준<input type="time" value="${ss.base||'09:00'}" onchange="setSessionBase('${ss.id}',this.value)"></div></th>`;
+    const sk='sess:'+ss.id, sortOn=attSort.key===sk;
+    const sortIco=sortOn?(attSort.dir==='asc'?'▲':'▼'):'⇅';
+    h+=`<th class="xls-h xls-sess"><div class="xls-sess-top"><input class="xls-sess-label" value="${esc(ss.label||'')}" placeholder="${si+1}회차" oninput="setSessionLabel('${ss.id}',this.value)"><button class="xls-sess-sort${sortOn?' on':''}" onclick="setAttSort('${sk}')" title="이 회차 도착시각순 정렬">${sortIco}</button>${sess.length>1?`<button class="xls-sess-del" onclick="removeSession('${ss.id}')" title="회차 삭제">✕</button>`:''}</div><div class="xls-sess-base">기준<input type="time" value="${ss.base||'09:00'}" onchange="setSessionBase('${ss.id}',this.value)"></div><div class="xls-sess-date"><input type="date" value="${ss.date||''}" onchange="setSessionDate('${ss.id}',this.value)" title="회차 날짜"></div></th>`;
   });
   h+=`<th class="xls-h xls-add-col"><button class="xls-addsess" onclick="addSession()" title="회차 추가">＋</button></th>`;
   h+=`<th class="xls-h xls-sticky-r xls-total-h" onclick="setAttSort('late')">총 지각${attSortArrow('late')}</th>`;
