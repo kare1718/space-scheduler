@@ -153,6 +153,11 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .xls-time:focus{outline:none;border-color:#1e3a5f;background:#fff}
 .xls-cell.xls-late{background:#fef2f2!important}
 .xls-cell.xls-ontime{background:#f0fdf4!important}
+.xls-cellwrap{display:flex;align-items:center;justify-content:center;gap:3px}
+.xls-now{flex-shrink:0;border:1px solid #a7f3d0;background:#ecfdf5;color:#059669;border-radius:6px;font-size:11px;font-weight:700;padding:3px 6px;cursor:pointer;font-family:inherit;white-space:nowrap;line-height:1}
+.xls-now:hover{background:#d1fae5}
+.xls-clear{flex-shrink:0;border:none;background:transparent;color:#cbd5e1;border-radius:6px;font-size:12px;cursor:pointer;padding:2px 5px;line-height:1}
+.xls-clear:hover{background:#fef2f2;color:#dc2626}
 .xls-lm{display:block;font-size:10px;font-weight:800;color:#dc2626;line-height:1;margin-top:-1px}
 .xls-ok{display:block;font-size:9px;font-weight:700;color:#059669;line-height:1}
 .xls-total{min-width:78px;width:1%;white-space:nowrap}
@@ -248,6 +253,8 @@ body.dark .xls-sess-sort.on{background:#2563eb;color:#fff;border-color:#2563eb}
 body.dark .xls-addsess{background:#0f172a;border-color:#475569;color:#94a3b8}
 body.dark .xls-cell.xls-late{background:#3b1d22!important}
 body.dark .xls-cell.xls-ontime{background:#13301f!important}
+body.dark .xls-now{background:#13301f;border-color:#1f6f43;color:#34d399}
+body.dark .xls-now:hover{background:#18452c}
 body.dark .xls-f{background:#172033;color:#94a3b8;border-top-color:#475569}
 body.dark .xls-f.xls-sticky-l{background:#172033!important}
 body.dark .xls-dash{color:#475569}
@@ -1498,6 +1505,13 @@ function setArrival(id,code,v){
   if(v)ss.recs[code]={time:v};else delete ss.recs[code];
   renderAtt();autoSave();
 }
+// 원탭 출석: 현재 시각으로 도착 체크
+function checkInNow(id,code){
+  const now=new Date();
+  const hhmm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  setArrival(id,code,hhmm);
+  toast('✅',`${dn(code)} 출석 ${hhmm}`);
+}
 // ---- 인원(행) CRUD : staff + nameMap 공용 → 근무표와 자동 연동 ----
 function nextCode(){let m=0;S.staff.forEach(s=>{const n=+s.code;if(n>m)m=n;});return String(m+1);}
 function addPerson(){
@@ -1637,7 +1651,8 @@ function renderAtt(){
       const lm=t?lateMin(t,ss.base):null;
       const cls=lm===null?'':(lm>0?'xls-late':'xls-ontime');
       const badge=lm===null?'':(lm>0?`<span class="xls-lm">+${lm}분</span>`:`<span class="xls-ok">정시</span>`);
-      h+=`<td class="xls-c xls-cell ${cls}"><input type="time" class="xls-time" value="${t}" onchange="setArrival('${ss.id}','${s.code}',this.value)">${badge}</td>`;
+      const actBtn=t?`<button class="xls-clear" onclick="setArrival('${ss.id}','${s.code}','')" title="출석 취소">✕</button>`:`<button class="xls-now" onclick="checkInNow('${ss.id}','${s.code}')" title="지금 시각으로 출석 체크">✓출석</button>`;
+      h+=`<td class="xls-c xls-cell ${cls}"><div class="xls-cellwrap"><input type="time" class="xls-time" value="${t}" onchange="setArrival('${ss.id}','${s.code}',this.value)">${actBtn}</div>${badge}</td>`;
     });
     h+='<td class="xls-c xls-add-col"></td>';
     const tot=personLateTotal(s.code);
