@@ -413,8 +413,25 @@ body.dark .toast,body.dark #toast>div{background:#243144}
         <button onclick="setAttSort('late')" class="icon-btn" title="지각 많은 순 정렬">지각순<span id="sortLateArrow" class="att-sort-pill"></span></button>
         <button onclick="addPerson()" class="icon-btn p">＋ 인원</button>
         <button onclick="addSession()" class="icon-btn p">＋ 회차</button>
-        <button onclick="bulkAttNames()" class="icon-btn">👥 일괄</button>
+        <button onclick="openAttNamePanel()" class="icon-btn">👥 명단</button>
         <button onclick="resetAttAll()" class="icon-btn" title="출결 기록만 초기화">↺</button>
+      </div>
+    </div>
+  </div>
+  <!-- 명단 일괄 입력·관리 (출결만 쓰는 경우 대응 / 근무표와 자동 연동) -->
+  <div class="card p-3 mb-3">
+    <div id="attNameToggle" class="collapse-btn" onclick="toggleSection('attNameBox',this)">
+      <span class="arrow">▶</span>
+      <h3 class="sec-title text-sm">👥 명단 일괄 입력 · 관리</h3>
+      <span class="text-[11px] text-[#94a3b8] ml-auto">근무표와 자동 연동</span>
+    </div>
+    <div id="attNameBox" style="display:none" class="mt-2">
+      <textarea id="attBulkArea" class="inp text-sm" rows="3" placeholder="이름 붙여넣기 (엑셀, 쉼표, 줄바꿈) — 명단이 부족하면 인원이 자동 추가됩니다" lang="ko"></textarea>
+      <div class="flex gap-1.5 flex-wrap mt-2">
+        <button onclick="applyAttBulk()" class="icon-btn p">적용</button>
+        <button onclick="setAttSort('name')" class="icon-btn">가나다순 정렬</button>
+        <button onclick="addPerson()" class="icon-btn">＋ 인원 추가</button>
+        <button onclick="clearAllRosterNames()" class="icon-btn" style="color:#dc2626">전체 이름 지우기</button>
       </div>
     </div>
   </div>
@@ -1450,6 +1467,29 @@ function bulkAttNames(){                                                 // 이�
   });
   const cnt=document.getElementById('inpStaffCount');if(cnt)cnt.value=S.staff.length;
   renderAtt();autoSave();toast('✅',`${names.length}명 입력`);
+}
+// ---- 출결 탭 명단 패널 (출결 단독 사용 대응) ----
+function openAttNamePanel(){
+  const box=document.getElementById('attNameBox'),btn=document.getElementById('attNameToggle');
+  if(box)box.style.display='';if(btn)btn.classList.add('open');
+  const ta=document.getElementById('attBulkArea');if(ta)ta.focus();
+}
+function applyAttBulk(){
+  const ta=document.getElementById('attBulkArea');const raw=ta?ta.value:'';
+  const names=raw.split(/[\t\n,]+/).map(s=>s.trim()).filter(Boolean);
+  if(!names.length){toast('⚠️','이름을 입력하거나 붙여넣으세요');return;}
+  let ni=0;
+  S.staff.forEach(s=>{if(ni<names.length&&!(S.nameMap[s.code]||'').trim())S.nameMap[s.code]=names[ni++];}); // 빈 슬롯부터
+  while(ni<names.length){const code=nextCode();S.staff.push({code,type:'rotate',restMin:S.restMin});S.nameMap[code]=names[ni++];} // 부족하면 추가
+  names.forEach(nm=>{if(!S.nameEntries.some(e=>e.name===nm))S.nameEntries.push({id:S.nextNameId++,name:nm});});
+  const cnt=document.getElementById('inpStaffCount');if(cnt)cnt.value=S.staff.length;
+  if(ta)ta.value='';
+  renderAtt();renderNameBank();autoSave();toast('✅',`${names.length}명 추가`);
+}
+function clearAllRosterNames(){
+  if(!confirm('모든 이름을 지울까요? (인원 수·회차·출결 기록은 유지됩니다)'))return;
+  S.nameEntries=[];S.staff.forEach(s=>S.nameMap[s.code]='');
+  renderAtt();renderNameBank();autoSave();toast('🗑️','이름 전체 삭제');
 }
 function lateMin(t,b){if(!t||!b)return 0;const[ah,am]=t.split(':').map(Number);const[bh,bm]=b.split(':').map(Number);return(ah*60+am)-(bh*60+bm);}
 // 한 사람의 전 회차 누적 지각(분, 횟수)
