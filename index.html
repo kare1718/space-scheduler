@@ -115,12 +115,14 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 /* ===== 엑셀형 출결 그리드 ===== */
 .xls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(30,58,95,.05)}
 .xls{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
-.xls th,.xls td{border-bottom:1px solid #eef2f7;border-right:1px solid #f1f5f9}
-.xls-h{background:#f1f5f9;color:#475569;font-weight:700;font-size:12px;padding:6px 8px;border-bottom:2px solid #cbd5e1!important;white-space:nowrap;position:sticky;top:0;z-index:3;vertical-align:top}
+.xls th,.xls td{border-bottom:1px solid #e2e8f0;border-right:1px solid #e2e8f0}
+.xls-h{background:#eef2f7;color:#475569;font-weight:700;font-size:12px;padding:6px 8px;border-bottom:2px solid #cbd5e1!important;white-space:nowrap;position:sticky;top:0;z-index:3;vertical-align:top}
 .xls-c{padding:3px 5px;text-align:center;vertical-align:middle;background:#fff}
-.xls tbody tr:nth-child(even) .xls-c{background:#fafbfd}
-.xls-sticky-l{position:sticky;left:0;z-index:2;background:#fff!important;box-shadow:1px 0 0 #e5e7eb}
-.xls-sticky-r{position:sticky;right:0;z-index:2;background:#fff!important;box-shadow:-1px 0 0 #e5e7eb}
+.xls tbody tr:nth-child(even) .xls-c{background:#f6f8fb}
+.xls-sticky-l{position:sticky;left:0;z-index:2;background:#fff!important;box-shadow:2px 0 0 #cbd5e1}
+.xls-sticky-r{position:sticky;right:0;z-index:2;background:#fff!important;box-shadow:-2px 0 0 #cbd5e1}
+.xls td.xls-add-col{background:#f1f5f9}
+.xls-h.xls-add-col{background:#e2e8f0!important}
 .xls-h.xls-sticky-l,.xls-h.xls-sticky-r{z-index:5;background:#f1f5f9!important}
 .xls-name-h,.xls-total-h{cursor:pointer;user-select:none}
 .xls-name-h:hover,.xls-total-h:hover{color:#1e3a5f}
@@ -133,7 +135,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .xls-name-inp::placeholder{color:#cbd5e1;font-weight:400}
 .xls-del{flex-shrink:0;width:22px;height:22px;border:none;background:transparent;color:#cbd5e1;border-radius:6px;cursor:pointer;font-size:12px;line-height:1}
 .xls-del:hover{background:#fef2f2;color:#dc2626}
-.xls-sess{min-width:118px}
+.xls-sess{min-width:138px}
 .xls-sess-top{display:flex;align-items:center;gap:2px;margin-bottom:3px}
 .xls-sess-label{flex:1;min-width:34px;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 5px;font-size:12px;font-weight:700;font-family:inherit;color:#1e3a5f;text-align:center}
 .xls-sess-label:focus{outline:none;border-color:#1e3a5f}
@@ -143,10 +145,10 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .xls-sess-del{flex-shrink:0;width:18px;height:18px;border:none;background:transparent;color:#cbd5e1;border-radius:5px;cursor:pointer;font-size:11px}
 .xls-sess-del:hover{background:#fef2f2;color:#dc2626}
 .xls-sess-base{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;color:#94a3b8;font-weight:500}
-.xls-sess-base input{background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 3px;font-size:11px;font-family:inherit;color:#475569;width:74px}
+.xls-sess-base input{background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 4px;font-size:11px;font-family:inherit;color:#475569;width:108px;min-width:108px}
 .xls-sess-date{margin-top:3px;text-align:center}
 .xls-sess-date input{width:106px;max-width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 3px;font-size:10px;font-family:inherit;color:#64748b}
-.xls-time{width:74px;background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 2px;font-size:13px;font-family:'Paperlogy',monospace;text-align:center;color:#334155}
+.xls-time{width:108px;min-width:108px;background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 4px;font-size:13px;font-family:'Paperlogy',monospace;text-align:center;color:#334155}
 .xls-time:hover{border-color:#e2e8f0;background:#fff}
 .xls-time:focus{outline:none;border-color:#1e3a5f;background:#fff}
 .xls-cell.xls-late{background:#fef2f2!important}
@@ -177,12 +179,91 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 @media(max-width:768px){
   .xls-name{min-width:140px}
   .xls-name-inp{font-size:16px}
-  .xls-time{font-size:16px;width:78px}
+  .xls-time{font-size:15px;width:112px;min-width:112px}
+  .xls-sess-base input{font-size:14px;width:112px;min-width:112px}
+  .xls-sess{min-width:148px}
   .xls-sess-base input{font-size:14px}
   .xls-sess-date input{font-size:13px}
   .topbar-sel{max-width:130px}
   .modal-card{margin-top:12px}
 }
+
+/* ===== 다크모드 ===== */
+body.dark{background:#0f172a;color:#e2e8f0}
+body.dark header{background:#0f172a!important;border-color:#1e293b!important}
+body.dark .card{background:#1e293b;border-color:#334155;box-shadow:none}
+body.dark .card-s{background:#172033;border-color:#334155}
+body.dark .inp{background:#0f172a;border-color:#334155;color:#e2e8f0}
+body.dark .inp:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(96,165,250,.15)}
+body.dark .label{color:#94a3b8}
+body.dark .sec-title{color:#cbd5e1}
+body.dark .tab-btn{color:#94a3b8}
+body.dark .tab-btn.on{background:#2563eb;color:#fff;box-shadow:none}
+body.dark .tab-btn:not(.on):hover{background:#1e293b;color:#e2e8f0}
+body.dark .icon-btn{background:#243144;color:#cbd5e1}
+body.dark .icon-btn:hover{background:#2d3b50}
+body.dark .icon-btn.p{background:#2563eb;color:#fff}
+body.dark .icon-btn.p:hover{background:#1d4ed8}
+body.dark .topbar-sel{background:#243144;border-color:#334155;color:#e2e8f0}
+body.dark .btn-p{background:#2563eb}body.dark .btn-p:hover{background:#1d4ed8}
+body.dark .btn-s{background:#243144;color:#cbd5e1}body.dark .btn-s:hover{background:#2d3b50}
+body.dark .collapse-btn .arrow{color:#94a3b8}
+/* Tailwind 유틸 오버라이드 */
+body.dark .bg-white{background:#1e293b!important}
+body.dark .border-gray-200,body.dark .border-gray-100{border-color:#334155!important}
+body.dark .text-\[\#1e3a5f\]{color:#e2e8f0!important}
+body.dark .text-\[\#64748b\]{color:#94a3b8!important}
+body.dark .text-\[\#94a3b8\]{color:#64748b!important}
+body.dark .text-\[\#1a2332\]{color:#e2e8f0!important}
+body.dark .text-\[\#059669\]{color:#34d399!important}
+body.dark .text-emerald-600{color:#34d399!important}
+body.dark .text-red-600,body.dark .text-red-500,body.dark .text-red-400{color:#f87171!important}
+body.dark .bg-blue-50{background:#172033!important}
+body.dark .bg-emerald-50{background:#0f2a20!important}
+body.dark .bg-indigo-50{background:#1e1b4b!important}
+body.dark .border-blue-100{border-color:#1e3a5f!important}
+body.dark .border-emerald-100{border-color:#14532d!important}
+body.dark .hover\:bg-gray-50:hover{background:#243144!important}
+body.dark .hover\:bg-slate-50:hover{background:#243144!important}
+body.dark .bg-slate-50{background:#243144!important}
+/* 엑셀 그리드 */
+body.dark .xls-scroll{background:#1e293b;border-color:#334155;box-shadow:none}
+body.dark .xls th,body.dark .xls td{border-color:#334155}
+body.dark .xls-h{background:#172033;color:#cbd5e1;border-bottom-color:#475569!important}
+body.dark .xls-c{background:#1e293b}
+body.dark .xls tbody tr:nth-child(even) .xls-c{background:#243144}
+body.dark .xls-sticky-l,body.dark .xls-sticky-r{background:#1e293b!important;box-shadow:2px 0 0 #475569}
+body.dark .xls-sticky-r{box-shadow:-2px 0 0 #475569}
+body.dark .xls-h.xls-sticky-l,body.dark .xls-h.xls-sticky-r{background:#172033!important}
+body.dark .xls td.xls-add-col{background:#141d2e}
+body.dark .xls-h.xls-add-col{background:#0f172a!important}
+body.dark .xls-name-inp{color:#e2e8f0}
+body.dark .xls-name-inp:hover{border-color:#334155}
+body.dark .xls-name-inp:focus{background:#0f172a;border-color:#60a5fa;box-shadow:0 0 0 2px rgba(96,165,250,.15)}
+body.dark .xls-sess-label,body.dark .xls-sess-base input,body.dark .xls-sess-date input{background:#0f172a;border-color:#334155;color:#cbd5e1}
+body.dark .xls-time{color:#cbd5e1}
+body.dark .xls-time:hover,body.dark .xls-time:focus{background:#0f172a;border-color:#475569}
+body.dark .xls-sess-sort{background:#0f172a;border-color:#334155;color:#94a3b8}
+body.dark .xls-sess-sort.on{background:#2563eb;color:#fff;border-color:#2563eb}
+body.dark .xls-addsess{background:#0f172a;border-color:#475569;color:#94a3b8}
+body.dark .xls-cell.xls-late{background:#3b1d22!important}
+body.dark .xls-cell.xls-ontime{background:#13301f!important}
+body.dark .xls-f{background:#172033;color:#94a3b8;border-top-color:#475569}
+body.dark .xls-f.xls-sticky-l{background:#172033!important}
+body.dark .xls-dash{color:#475569}
+body.dark .att-sort-dim{color:#475569}
+/* 모달 */
+body.dark .modal-card{background:#1e293b}
+body.dark .modal-head{border-bottom-color:#334155}
+body.dark .save-row{border-color:#334155}
+body.dark .save-row.cur{background:#172033;border-color:#60a5fa}
+/* 근무표 */
+body.dark #schTable thead th{background:#172033;border-color:#475569;color:#cbd5e1}
+body.dark #schTable tbody tr:nth-child(even) td{background:#243144}
+body.dark #schTable tbody tr:hover td{background:#2d3b50}
+body.dark .sch-cell{border-color:#334155}
+body.dark #schTable td.sch-cell:first-child{border-right-color:#475569}
+body.dark .toast,body.dark #toast>div{background:#243144}
 </style>
 </head>
 <body>
@@ -205,6 +286,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
         <option value="">📂 저장본 선택…</option>
       </select>
       <button onclick="openSaveModal()" class="icon-btn p" title="현재 상태 저장">💾 저장</button>
+      <button id="darkBtn" onclick="toggleDark()" class="icon-btn" title="다크모드 전환">🌙</button>
       <div class="relative" id="exportWrap" style="display:none">
         <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="icon-btn" title="근무표 내보내기">📥</button>
         <div id="exportMenu" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" style="min-width:120px">
@@ -282,9 +364,9 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
   </div>
 
   <!-- 4) 이름배치 + 미배치 + 요약 (가로 3등분) -->
-  <div id="nameBankWrap" class="card p-4 mb-3 hidden">
+  <div id="nameBankWrap" class="card p-4 mb-3">
     <div class="flex items-center justify-between mb-2 flex-wrap gap-1">
-      <h3 class="sec-title text-sm">👥 이름 배치</h3>
+      <h3 class="sec-title text-sm">👥 이름 배치 <span class="text-[10px] font-normal text-[#94a3b8]">(출결과 자동 연동)</span></h3>
       <div class="flex gap-1">
         <button onclick="autoAssignNames()" class="btn btn-g text-[11px] py-1 px-2">🤖 자동배치</button>
         <button onclick="sortNames()" class="btn btn-s text-[11px] py-1 px-2">가나다순</button>
@@ -393,6 +475,7 @@ let S={
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded',()=>{
+  initTheme();
   buildTimeOpts(); bindTabs();
   const loaded=autoLoad();
   if(!loaded){ rebuildStaff(); renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt(); }
@@ -416,7 +499,8 @@ function bindTabs(){
       b.classList.add('on');
       document.querySelectorAll('.tab-p').forEach(x=>x.classList.add('hidden'));
       document.getElementById('p-'+b.dataset.t).classList.remove('hidden');
-      if(b.dataset.t==='att')renderAtt();
+      if(b.dataset.t==='att')renderAtt();                       // 출결 진입: 명단(nameMap) 반영
+      else if(b.dataset.t==='main'){renderNameBank();if(S.sch)renderSchTable(),renderSchTags();}  // 근무표 진입: 이름 변경 반영
     };
   });
 }
@@ -543,8 +627,14 @@ function applyBulkPaste(){
   names.forEach(n=>{if(!existingNames.has(n)){S.nameEntries.push({id:S.nextNameId++,name:n});existingNames.add(n);added++;}});
   document.getElementById('bulkPasteArea').value='';
   document.getElementById('bulkPasteWrap').classList.add('hidden');
-  renderNameBank();renderSchTags();autoSave();
-  toast('✅',`${added}명 추가 (총 ${S.nameEntries.length}명)`);
+  // 출결과 즉시 연동: 미배정 이름을 빈 인원 슬롯에 채우고, 부족하면 인원 자동 추가 → nameMap 공유
+  const pool=S.nameEntries.filter(e=>e.name&&!Object.values(S.nameMap).includes(e.name));
+  let pi=0;
+  S.staff.forEach(s=>{if(!S.nameMap[s.code]&&pi<pool.length)S.nameMap[s.code]=pool[pi++].name;});
+  while(pi<pool.length){const code=nextCode();S.staff.push({code,type:'rotate',restMin:S.restMin});S.nameMap[code]=pool[pi++].name;}
+  const cnt=document.getElementById('inpStaffCount');if(cnt)cnt.value=S.staff.length;
+  renderNameBank();if(S.sch)renderSchTags();renderAtt();autoSave();
+  toast('✅',`${added}명 추가 · 출결에도 반영`);
 }
 function sortNames(){
   S.nameEntries.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
@@ -557,24 +647,25 @@ function autoAssignNames(){
   for(let i=0;i<Math.min(unmappedCodes.length,unmappedNames.length);i++){
     S.nameMap[unmappedCodes[i]]=unmappedNames[i].name;count++;
   }
-  if(count){renderSchTags();renderNameChips();renderMapStatus();autoSave();toast('✅',`${count}명 자동 배치`);}
+  if(count){renderSchTags();renderNameChips();renderMapStatus();renderAtt();autoSave();toast('✅',`${count}명 자동 배치`);}
   else toast('⚠️','배치할 이름이 없습니다');
 }
 function clearAllNames(){
   S.nameEntries=[];S.nameMap={};S.staff.forEach(s=>S.nameMap[s.code]='');
-  renderNameBank();renderSchTags();autoSave();toast('🗑️','이름 초기화');
+  renderNameBank();renderSchTags();renderAtt();autoSave();toast('🗑️','이름 초기화');
 }
 function updateNameEntry(id,val){
   const entry=S.nameEntries.find(e=>e.id===id);if(!entry)return;
   const oldName=entry.name;
-  if(oldName){for(const code in S.nameMap){if(S.nameMap[code]===oldName)S.nameMap[code]='';}}
+  // 배정돼 있던 이름이면 같은 자리에 새 이름으로 '이름 변경'(출결과 동기화), 비우면 배정 해제
+  if(oldName){for(const code in S.nameMap){if(S.nameMap[code]===oldName)S.nameMap[code]=val||'';}}
   entry.name=val;
-  renderNameChips();renderSchTags();renderMapStatus();autoSave();
+  renderNameChips();renderSchTags();renderMapStatus();renderAtt();autoSave();
 }
 // 배치 해제
 function unmapName(name){
   for(const code in S.nameMap){if(S.nameMap[code]===name)S.nameMap[code]='';}
-  renderNameChips();renderSchTags();renderMapStatus();autoSave();
+  renderNameChips();renderSchTags();renderMapStatus();renderAtt();autoSave();
   toast('↩️',`"${name}" 배치 해제`);
 }
 
@@ -1648,6 +1739,18 @@ async function cloudPull(){
   }catch(e){return false;}
 }
 function schedulePush(){clearTimeout(_pushTimer);_pushTimer=setTimeout(()=>cloudPush(),2000);}
+
+// ===== 다크모드 =====
+const LS_THEME='spaceSch_theme';
+function applyTheme(t){
+  const d=t==='dark';
+  document.body.classList.toggle('dark',d);
+  const b=document.getElementById('darkBtn');if(b)b.textContent=d?'☀️':'🌙';
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',d?'#0f172a':'#1e3a5f');
+  try{localStorage.setItem(LS_THEME,t);}catch(e){}
+}
+function initTheme(){let t='light';try{t=localStorage.getItem(LS_THEME)||'light';}catch(e){}applyTheme(t);}
+function toggleDark(){applyTheme(document.body.classList.contains('dark')?'light':'dark');}
 
 // ===== PWA =====
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
