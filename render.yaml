@@ -1,0 +1,21 @@
+# Render Blueprint — PREFER STAFF scheduler
+# 배포: Render 대시보드 → New + → Blueprint → 이 깃허브 저장소(space-scheduler) 연결 → Apply
+# 그러면 server.js 가 앱(index.html) + /api/data 를 같은 도메인에서 서빙합니다.
+# 생성된 Render URL 로 접속하면 저장/불러오기가 서버에 보관되어 여러 기기에서 공유됩니다.
+services:
+  - type: web
+    name: prefer-staff-scheduler
+    runtime: node
+    plan: starter           # 영구 디스크는 유료(Starter+)에서만 가능. 무료로 쓰려면 plan:free 로 바꾸고 아래 disk/envVars 제거(단, 재시작 시 데이터 초기화)
+    region: singapore        # 한국과 가까운 리전 (oregon/frankfurt 등으로 변경 가능)
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true          # master 에 push 하면 자동 재배포
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: scheduler-data
+      mountPath: /var/data
+      sizeGB: 1
