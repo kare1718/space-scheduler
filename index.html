@@ -292,11 +292,22 @@ body{font-size:13px}
 .text-sm{font-size:12px!important}
 .text-xs{font-size:11px!important}
 @media(max-width:768px){
-  body{font-size:13px}
-  .inp{font-size:14px}
-  .xls-name-inp,.att-name-inp{font-size:14px}
-  .xls-time{font-size:14px}
-  .xls-sess-base input{font-size:13px}
+  /* 모바일 글씨 2pt 축소 */
+  body{font-size:12px}
+  .sec-title{font-size:13px}
+  .label{font-size:11px}
+  .btn,.icon-btn,.tab-btn,.topbar-sel{font-size:11px}
+  .inp{font-size:13px}
+  .xls{font-size:11px}
+  .xls-h{font-size:10px}
+  /* 모바일 이름칸 폭 축소(좌우 불편 해소) */
+  .xls-name{min-width:0}
+  .xls-name-inp,.att-name-inp{font-size:13px;width:58px}
+  .xls-no{min-width:18px;height:18px;font-size:9px;padding:0 4px}
+  .xls-del{width:18px;height:18px;font-size:11px}
+  .xls-name-cell-in{gap:4px}
+  .xls-time{font-size:13px;width:104px;min-width:104px}
+  .xls-sess-base input{font-size:12px;width:104px;min-width:104px}
 }
 </style>
 </head>
@@ -706,7 +717,7 @@ function toggleBulkPaste(){
 function applyBulkPaste(){
   const raw=document.getElementById('bulkPasteArea').value;
   if(!raw.trim()){toast('⚠️','내용을 붙여넣기 하세요');return;}
-  const names=raw.split(/[\t\n,]+/).map(s=>s.trim()).filter(s=>s);
+  const names=raw.split(/[\s,]+/).map(s=>s.trim()).filter(s=>s);
   if(!names.length){toast('⚠️','이름을 인식할 수 없습니다');return;}
   const existingNames=new Set(S.nameEntries.map(e=>e.name));
   let added=0;
@@ -1612,7 +1623,7 @@ function attNameNav(e,idx){                                              // Ente
 function bulkAttNames(){                                                 // 이름 일괄 붙여넣기 → 명단 채우기(부족하면 자동 추가)
   const raw=prompt('이름을 줄바꿈 또는 쉼표로 구분해 붙여넣으세요.\n명단 위에서부터 순서대로 채워지고, 인원이 부족하면 자동으로 추가됩니다.');
   if(raw==null)return;
-  const names=raw.split(/[\t\n,]+/).map(s=>s.trim()).filter(Boolean);
+  const names=raw.split(/[\s,]+/).map(s=>s.trim()).filter(Boolean);
   if(!names.length){toast('⚠️','이름을 인식할 수 없습니다');return;}
   names.forEach((nm,i)=>{
     if(i>=S.staff.length){const code=nextCode();S.staff.push({code,type:'rotate',restMin:S.restMin});}
@@ -1633,7 +1644,7 @@ function refreshAttNamePanel(){ setAttNamePanel(!Object.values(S.nameMap||{}).so
 function openAttNamePanel(){ setAttNamePanel(true); const ta=document.getElementById('attBulkArea');if(ta)ta.focus(); }
 function applyAttBulk(){
   const ta=document.getElementById('attBulkArea');const raw=ta?ta.value:'';
-  const names=raw.split(/[\t\n,]+/).map(s=>s.trim()).filter(Boolean);
+  const names=raw.split(/[\s,]+/).map(s=>s.trim()).filter(Boolean);
   if(!names.length){toast('⚠️','이름을 입력하거나 붙여넣으세요');return;}
   let ni=0;
   S.staff.forEach(s=>{if(ni<names.length&&!(S.nameMap[s.code]||'').trim())S.nameMap[s.code]=names[ni++];}); // 빈 슬롯부터
@@ -1913,8 +1924,7 @@ function renderSaveList(){
 // ===== 클라우드 동기화 (서버 연결 시: 최신 시각 기준 양방향 자동 연동, last-write-wins) =====
 const LS_UPDATED='spaceSch_updated';
 let _updated='';try{_updated=localStorage.getItem(LS_UPDATED)||'';}catch(e){}
-// 기존 사용자(타임스탬프 없음 + 로컬 데이터 있음) → 현재 시각으로 간주(빈/구 서버가 로컬을 덮어쓰지 않게)
-try{ if(!_updated && localStorage.getItem(LS_AUTO)){ _updated=new Date().toISOString(); localStorage.setItem(LS_UPDATED,_updated); } }catch(e){}
+// 타임스탬프 없으면 비워둠 → 서버에 데이터가 있으면 자동으로 가져옴(새 기기에서 PC 데이터 자동 표시)
 function markUpdated(){_updated=new Date().toISOString();try{localStorage.setItem(LS_UPDATED,_updated);}catch(e){}}
 function setCloudStatus(msg){const el=document.getElementById('cloudStatus');if(el)el.textContent=msg;}
 let _pushTimer=null,_syncing=false;
