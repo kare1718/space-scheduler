@@ -497,14 +497,22 @@ body{font-size:13px}
         <div id="cloudStatus" class="text-[10px] text-[#94a3b8] mt-1.5"></div>
         <div id="autoSaveInd" class="text-[10px] text-[#94a3b8] mt-0.5">⏱ 30초마다 자동 저장됩니다</div>
       </div>
-      <div class="card-s p-3 mb-3" style="border-color:#fde68a;background:#fffbeb">
-        <div class="text-xs font-bold text-[#b45309] mb-1">📱 기기 간 이동 (PC ↔ 휴대폰)</div>
+      <div class="card-s p-3 mb-3" style="border-color:#bfdbfe;background:#eff6ff">
+        <div class="text-xs font-bold text-[#1d4ed8] mb-1">☁ 서버 동기화 (PC ↔ 휴대폰 자동)</div>
         <div class="flex gap-2 flex-wrap">
-          <button onclick="exportBackup()" class="icon-btn p" style="padding:8px 12px">📦 백업 파일 내려받기</button>
-          <button onclick="document.getElementById('backupFile').click()" class="icon-btn" style="padding:8px 12px">📂 백업 파일 불러오기</button>
-          <input type="file" id="backupFile" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
+          <button onclick="forcePullFromServer()" class="icon-btn p" style="padding:8px 12px">⬇ 서버에서 불러오기</button>
+          <button onclick="forcePushToServer()" class="icon-btn" style="padding:8px 12px">⬆ 서버에 올리기</button>
         </div>
-        <div class="text-[10px] text-[#92763a] mt-1.5">지금은 저장이 <b>이 기기에만</b> 남습니다. PC에서 <b>백업 파일을 내려받아</b> 카톡/메일/드라이브로 휴대폰에 옮긴 뒤 <b>불러오기</b> 하면 출석·근무표가 그대로 복원됩니다. (자동 동기화는 서버 연결 필요 — 아래 안내)</div>
+        <div class="text-[10px] text-[#475569] mt-1.5">PC·휴대폰 모두 <b>이 사이트(Render 주소)</b>로 접속하면 저장 시 자동 연동됩니다. <b>휴대폰에서 PC 데이터가 안 보이면 ⬇ 서버에서 불러오기</b>만 누르세요. <b>파일 필요 없음.</b></div>
+      </div>
+      <div class="card-s p-3 mb-3" style="border-color:#fde68a;background:#fffbeb">
+        <div class="text-xs font-bold text-[#b45309] mb-1">📁 백업 파일 (서버 안 쓸 때만)</div>
+        <div class="flex gap-2 flex-wrap">
+          <button onclick="exportBackup()" class="icon-btn" style="padding:8px 12px">📦 내려받기</button>
+          <button onclick="document.getElementById('backupFile').click()" class="icon-btn" style="padding:8px 12px">📂 불러오기</button>
+          <input type="file" id="backupFile" style="display:none" onchange="importBackup(this)">
+        </div>
+        <div class="text-[10px] text-[#92763a] mt-1.5">서버 없이 기기 간 옮길 때만 사용. 위 ☁ 서버 동기화를 쓰면 파일은 필요 없습니다.</div>
       </div>
       <div class="flex items-center justify-between mb-1">
         <div class="text-xs font-bold text-[#1e3a5f]">저장된 항목 (날짜별)</div>
@@ -1946,6 +1954,28 @@ async function cloudSync(){
     setCloudStatus('☁ 서버와 동기화됨 · '+new Date().toLocaleTimeString('ko-KR'));
     return 'insync';
   }finally{_syncing=false;}
+}
+// 수동: 서버 데이터를 이 기기로 강제로 가져오기 (타임스탬프 무관)
+async function forcePullFromServer(){
+  setCloudStatus('서버에서 불러오는 중…');
+  let data;
+  try{const res=await fetch('/api/data');if(!res||!res.ok){setCloudStatus('⚠ 서버 연결 안 됨');toast('⚠️','서버 연결 안 됨 — Render 주소로 접속했는지 확인');return;}data=await res.json();}
+  catch(e){toast('⚠️','서버 연결 안 됨');return;}
+  if(!(data&&data.current&&data.current.zones)){toast('⚠️','서버에 저장된 데이터가 없습니다');setCloudStatus('서버에 데이터 없음');return;}
+  if(!confirm('서버의 최신 데이터로 이 기기 화면을 교체할까요?'))return;
+  applyState(data.current);
+  _updated=data.updated||new Date().toISOString();
+  try{localStorage.setItem(LS_UPDATED,_updated);localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
+  if(Array.isArray(data.slots)&&data.slots.length){const ex=getSlots();const keys=new Set(ex.map(s=>s.name+'|'+s.eventDate));normalizeSlotsInPlace(data.slots).forEach(sl=>{if(!keys.has(sl.name+'|'+sl.eventDate))ex.push(sl);});setSaveSlots(ex);}
+  renderSaveList();refreshSaveSelect();refreshAttNamePanel();
+  setCloudStatus('☁ 서버에서 불러옴 · '+new Date().toLocaleTimeString('ko-KR'));toast('✅','서버에서 불러오기 완료');
+}
+// 수동: 이 기기 데이터를 서버로 강제로 올리기 (이 기기 우선)
+async function forcePushToServer(){
+  markUpdated();
+  const ok=await cloudPush();
+  setCloudStatus(ok?('☁ 서버에 올림 · '+new Date().toLocaleTimeString('ko-KR')):'⚠ 서버 연결 안 됨');
+  toast(ok?'✅':'⚠️',ok?'서버에 올리기 완료':'서버 연결 안 됨 — Render 주소 확인');
 }
 
 // ===== 다크모드 =====
