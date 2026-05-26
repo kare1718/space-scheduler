@@ -104,6 +104,79 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
   .sch-tag{padding:4px 8px;font-size:12px}
   #schTable td{min-width:70px!important}
 }
+
+/* ===== 상단바 / 저장본 선택 ===== */
+.topbar-sel{background:#f1f5f9;border:1px solid #cbd5e1;color:#1e3a5f;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:600;font-family:inherit;max-width:190px;cursor:pointer}
+.topbar-sel:focus{outline:none;border-color:#1e3a5f}
+.icon-btn{background:#e8edf3;color:#1e3a5f;border:none;border-radius:9px;padding:9px 12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
+.icon-btn:hover{background:#dce3ed}
+.icon-btn.p{background:#1e3a5f;color:#fff}.icon-btn.p:hover{background:#15304f}
+
+/* ===== 엑셀형 출결 그리드 ===== */
+.xls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(30,58,95,.05)}
+.xls{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
+.xls th,.xls td{border-bottom:1px solid #eef2f7;border-right:1px solid #f1f5f9}
+.xls-h{background:#f1f5f9;color:#475569;font-weight:700;font-size:12px;padding:6px 8px;border-bottom:2px solid #cbd5e1!important;white-space:nowrap;position:sticky;top:0;z-index:3;vertical-align:top}
+.xls-c{padding:3px 5px;text-align:center;vertical-align:middle;background:#fff}
+.xls tbody tr:nth-child(even) .xls-c{background:#fafbfd}
+.xls-sticky-l{position:sticky;left:0;z-index:2;background:#fff!important;box-shadow:1px 0 0 #e5e7eb}
+.xls-sticky-r{position:sticky;right:0;z-index:2;background:#fff!important;box-shadow:-1px 0 0 #e5e7eb}
+.xls-h.xls-sticky-l,.xls-h.xls-sticky-r{z-index:5;background:#f1f5f9!important}
+.xls-name-h,.xls-total-h{cursor:pointer;user-select:none}
+.xls-name-h:hover,.xls-total-h:hover{color:#1e3a5f}
+.xls-name{text-align:left;min-width:160px}
+.xls-name-cell-in{display:flex;align-items:center;gap:6px}
+.xls-no{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:6px;color:#fff;font-size:10px;font-weight:800;flex-shrink:0}
+.xls-name-inp{flex:1;min-width:70px;background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 6px;font-size:14px;font-weight:600;font-family:inherit;color:#1a2332}
+.xls-name-inp:hover{border-color:#e2e8f0}
+.xls-name-inp:focus{outline:none;border-color:#1e3a5f;background:#fff;box-shadow:0 0 0 2px rgba(30,58,95,.08)}
+.xls-name-inp::placeholder{color:#cbd5e1;font-weight:400}
+.xls-del{flex-shrink:0;width:22px;height:22px;border:none;background:transparent;color:#cbd5e1;border-radius:6px;cursor:pointer;font-size:12px;line-height:1}
+.xls-del:hover{background:#fef2f2;color:#dc2626}
+.xls-sess{min-width:96px}
+.xls-sess-top{display:flex;align-items:center;gap:2px;margin-bottom:3px}
+.xls-sess-label{flex:1;min-width:40px;width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:3px 5px;font-size:12px;font-weight:700;font-family:inherit;color:#1e3a5f;text-align:center}
+.xls-sess-label:focus{outline:none;border-color:#1e3a5f}
+.xls-sess-del{flex-shrink:0;width:18px;height:18px;border:none;background:transparent;color:#cbd5e1;border-radius:5px;cursor:pointer;font-size:11px}
+.xls-sess-del:hover{background:#fef2f2;color:#dc2626}
+.xls-sess-base{display:flex;align-items:center;justify-content:center;gap:3px;font-size:10px;color:#94a3b8;font-weight:500}
+.xls-sess-base input{background:#fff;border:1px solid #e2e8f0;border-radius:5px;padding:2px 3px;font-size:11px;font-family:inherit;color:#475569;width:74px}
+.xls-time{width:74px;background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 2px;font-size:13px;font-family:'Paperlogy',monospace;text-align:center;color:#334155}
+.xls-time:hover{border-color:#e2e8f0;background:#fff}
+.xls-time:focus{outline:none;border-color:#1e3a5f;background:#fff}
+.xls-cell.xls-late{background:#fef2f2!important}
+.xls-cell.xls-ontime{background:#f0fdf4!important}
+.xls-lm{display:block;font-size:10px;font-weight:800;color:#dc2626;line-height:1;margin-top:-1px}
+.xls-ok{display:block;font-size:9px;font-weight:700;color:#059669;line-height:1}
+.xls-total{min-width:78px}
+.xls-total-min{color:#dc2626;font-size:14px;font-weight:800}
+.xls-total-cnt{display:block;font-size:9px;color:#94a3b8;font-weight:600}
+.xls-dash{color:#cbd5e1;font-size:12px}
+.xls-add-col{width:38px;min-width:38px}
+.xls-addsess{width:26px;height:26px;border:1px dashed #cbd5e1;background:#fff;color:#64748b;border-radius:7px;cursor:pointer;font-size:14px;font-weight:700}
+.xls-addsess:hover{border-color:#1e3a5f;color:#1e3a5f;background:#f1f5f9}
+.xls-f{background:#f8fafc;font-size:11px;font-weight:700;color:#64748b;padding:5px 6px;text-align:center;border-top:2px solid #e5e7eb}
+.xls-f.xls-sticky-l{background:#f8fafc!important;text-align:left}
+.att-sort-pill{font-size:9px;color:#cbd5e1}
+
+/* ===== 모달 ===== */
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;animation:fadeUp .2s ease}
+.modal-back.hidden{display:none}
+.modal-card{background:#fff;border-radius:18px;max-width:560px;width:100%;margin-top:40px;box-shadow:0 20px 60px rgba(15,23,42,.3);overflow:hidden}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #eef2f7}
+.modal-body{padding:16px 18px;max-height:70vh;overflow:auto}
+.save-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px}
+.save-row.cur{border-color:#1e3a5f;background:#f1f5f9}
+.date-group-label{font-size:11px;font-weight:800;color:#94a3b8;margin:10px 0 6px;letter-spacing:.4px}
+
+@media(max-width:768px){
+  .xls-name{min-width:140px}
+  .xls-name-inp{font-size:16px}
+  .xls-time{font-size:16px;width:78px}
+  .xls-sess-base input{font-size:14px}
+  .topbar-sel{max-width:130px}
+  .modal-card{margin-top:12px}
+}
 </style>
 </head>
 <body>
@@ -117,14 +190,17 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
         <span style="font-family:'Dancing Script',cursive;font-size:16px;color:#64748b;margin-top:-3px">STAFF scheduler</span>
       </div>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 flex-wrap justify-end">
       <nav class="flex gap-1" id="tabs">
-        <button class="tab-btn on" data-t="main">📋 스케줄 생성</button>
-        <button class="tab-btn" data-t="att">📝 출결 확인</button>
+        <button class="tab-btn on" data-t="att">📋 출결</button>
+        <button class="tab-btn" data-t="main">🗓️ 근무표</button>
       </nav>
-      <button onclick="quickSave()" class="btn btn-p py-[10px] px-[18px]" style="font-size:14px">💾 저장</button>
+      <select id="saveSelect" class="topbar-sel" onchange="loadSelectedSave(this.value)" title="저장본 불러오기">
+        <option value="">📂 저장본 선택…</option>
+      </select>
+      <button onclick="openSaveModal()" class="icon-btn p" title="현재 상태 저장">💾 저장</button>
       <div class="relative" id="exportWrap" style="display:none">
-        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="btn btn-s py-[10px] px-[14px]" style="font-size:14px">📥 내보내기</button>
+        <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="icon-btn" title="근무표 내보내기">📥</button>
         <div id="exportMenu" class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1" style="min-width:120px">
           <button onclick="downloadPNG();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📸 PNG 저장</button>
           <button onclick="downloadPDF();document.getElementById('exportMenu').classList.add('hidden')" class="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50">📄 PDF 저장</button>
@@ -137,23 +213,7 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 <main class="max-w-[1200px] mx-auto p-3">
 
 <!-- ======================== TAB: 메인 (설정+스케줄+저장 통합) ======================== -->
-<section id="p-main" class="tab-p fade-up">
-
-  <!-- 1) 저장 목록 (최상단) -->
-  <div class="card p-4 mb-3">
-    <div class="collapse-btn open" onclick="toggleSection('saveBody',this)">
-      <span class="arrow">▶</span>
-      <h3 class="sec-title text-sm">💾 저장 목록</h3>
-      <span id="saveCount" class="text-xs text-[#94a3b8] ml-auto"></span>
-    </div>
-    <div id="saveBody" class="mt-2">
-      <div class="flex gap-2 flex-wrap items-end mb-3">
-        <input type="text" id="saveName" class="inp" style="flex:1;min-width:140px" placeholder="저장 이름 (예: 3/21 금요일)">
-        <button onclick="saveSlot()" class="btn btn-p py-2 px-4 text-sm">💾 저장</button>
-      </div>
-      <div id="saveList"></div>
-    </div>
-  </div>
+<section id="p-main" class="tab-p fade-up hidden">
 
   <!-- 2) 설정 접기/펼치기 -->
   <div class="card p-4 mb-3">
@@ -196,23 +256,23 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
     </div>
   </div>
 
-  <!-- 3) 스케줄 생성 바 -->
+  <!-- 3) 스케줄 생성 + 규칙검증 (세로 통합) -->
   <div class="card p-4 mb-3">
-    <div class="flex items-center justify-between flex-wrap gap-2">
-      <div class="flex gap-2 items-center flex-wrap">
-        <select id="selRestMode" class="inp text-sm py-2" style="width:auto" onchange="S.restMode=this.value;autoSave();">
-          <option value="smart">🧠 AI 분산</option>
-          <option value="rotate">🔄 순번 밀어내기</option>
-          <option value="push">⏩ 전체 밀어내기</option>
-        </select>
-        <button onclick="genSchedule()" class="btn btn-p py-2.5 px-5">🤖 자동 생성</button>
-      </div>
+    <div class="flex gap-2 items-center flex-wrap mb-3">
+      <select id="selRestMode" class="inp text-sm py-2" style="width:auto" onchange="S.restMode=this.value;autoSave();">
+        <option value="smart">🧠 AI 분산</option>
+        <option value="rotate">🔄 순번 밀어내기</option>
+        <option value="push">⏩ 전체 밀어내기</option>
+      </select>
+      <button onclick="genSchedule()" class="btn btn-p py-2.5 px-5">🤖 자동 생성</button>
     </div>
-  </div>
-
-  <div id="ruleBox" class="card p-3 mb-3 hidden">
-    <h3 class="sec-title mb-2 text-sm">✅ 규칙 검증</h3>
-    <div id="ruleGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-1"></div>
+    <div id="ruleBox" class="hidden">
+      <div class="border-t border-gray-200 pt-3 mb-2">
+        <h3 class="sec-title mb-2 text-sm">✅ 규칙 검증</h3>
+        <div id="ruleGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1"></div>
+      </div>
+      <div id="ruleAnalysis" class="hidden mt-2"></div>
+    </div>
   </div>
 
   <!-- 4) 이름배치 + 미배치 + 요약 (가로 3등분) -->
@@ -253,26 +313,54 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 </section>
 
 <!-- ======================== TAB: 출결 ======================== -->
-<section id="p-att" class="tab-p hidden">
-  <div class="card p-4 mb-3">
+<section id="p-att" class="tab-p fade-up">
+  <div class="card p-3 mb-3">
     <div class="flex items-center justify-between flex-wrap gap-2">
-      <h2 class="text-base font-bold text-[#1e3a5f]">📝 출결 관리</h2>
-      <div class="flex items-center gap-2">
-        <button onclick="bulkAttNames()" class="btn btn-s text-xs py-1.5">👥 이름 일괄 입력</button>
-        <label class="label mb-0">기준</label>
-        <input type="time" id="attendBase" value="10:30" class="inp" style="width:110px" onchange="renderAtt()">
-        <button onclick="resetAtt()" class="btn btn-d text-xs py-1.5">↺</button>
+      <div>
+        <h2 class="text-base font-bold text-[#1e3a5f]">📋 출결 · 누적 지각</h2>
+        <p class="text-[11px] text-[#94a3b8] mt-0.5">이름을 입력하면 근무표에도 자동 반영돼요. 회차(열)를 추가하면 행사 전체 지각이 누적 집계됩니다.</p>
+      </div>
+      <div class="flex items-center gap-1.5 flex-wrap justify-end">
+        <button onclick="setAttSort('name')" class="icon-btn" title="가나다 정렬">가나다<span id="sortNameArrow" class="att-sort-pill"></span></button>
+        <button onclick="setAttSort('late')" class="icon-btn" title="지각 많은 순 정렬">지각순<span id="sortLateArrow" class="att-sort-pill"></span></button>
+        <button onclick="addPerson()" class="icon-btn p">＋ 인원</button>
+        <button onclick="addSession()" class="icon-btn p">＋ 회차</button>
+        <button onclick="bulkAttNames()" class="icon-btn">👥 일괄</button>
+        <button onclick="resetAttAll()" class="icon-btn" title="출결 기록만 초기화">↺</button>
       </div>
     </div>
   </div>
-  <div id="lateSummary" class="card p-3 mb-3 hidden border-l-4 border-l-red-400">
-    <h3 class="text-sm font-bold text-red-600 mb-2">⚠️ 지각자</h3>
-    <div id="lateList" class="space-y-1"></div>
-  </div>
-  <div class="card p-3"><div id="attList"></div></div>
+  <div id="attGrid"></div>
+  <p class="text-[11px] text-[#94a3b8] mt-2 px-1">💡 빈 칸 = 미입력 · 도착 시각이 회차 기준시각보다 늦으면 지각(+분)으로 집계됩니다. 표를 가로로 스크롤해 회차를 확인하세요.</p>
 </section>
 
 </main>
+
+<!-- 저장/불러오기 모달 -->
+<div id="saveModal" class="modal-back hidden" onclick="if(event.target===this)closeSaveModal()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 class="sec-title text-sm">💾 날짜별 저장 / 불러오기</h3>
+      <button onclick="closeSaveModal()" class="icon-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="card-s p-3 mb-3">
+        <div class="text-xs font-bold text-[#1e3a5f] mb-2">현재 상태 저장</div>
+        <div class="flex gap-2 flex-wrap items-end">
+          <div style="flex:1;min-width:120px"><label class="label">날짜</label><input type="date" id="saveDate" class="inp"></div>
+          <div style="flex:2;min-width:150px"><label class="label">이름 (행사/메모)</label><input type="text" id="saveName" class="inp" lang="ko" placeholder="예: 봄 박람회 1일차"></div>
+          <button onclick="saveSlot()" class="icon-btn p" style="padding:10px 16px">💾 저장</button>
+        </div>
+        <div id="cloudStatus" class="text-[10px] text-[#94a3b8] mt-1.5"></div>
+      </div>
+      <div class="flex items-center justify-between mb-1">
+        <div class="text-xs font-bold text-[#1e3a5f]">저장된 항목 (날짜별)</div>
+        <span id="saveCount" class="text-[11px] text-[#94a3b8]"></span>
+      </div>
+      <div id="saveList"></div>
+    </div>
+  </div>
+</div>
 
 <div id="toast"><div></div></div>
 
@@ -293,6 +381,8 @@ let S={
   nextNameId:0,
   sch:null,
   attend:{},
+  sessions:[],
+  fixedMembers:{},
 };
 
 // ===== INIT =====
@@ -301,9 +391,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   const loaded=autoLoad();
   if(!loaded){ rebuildStaff(); renderZones(); renderStaff(); renderRestGrid(); initAtt(); renderAtt(); }
   bindInputs();
-  renderSaveList();
+  refreshSaveSelect();
   _initDone=true;
-  if(!loaded){ cloudPull(); }
+  if(!loaded){ cloudPull(); } else { cloudPullSlots().then(()=>refreshSaveSelect()); }
 });
 
 // ===== UI HELPERS =====
@@ -379,8 +469,7 @@ function calcRestRec(){
     if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음</span>`;
     else el.innerHTML=`1인당 최대 <b>${rec}분</b> (법정 ${legalMin}분, 여유 ${spare}명)`;
   }
-  // 상시 인원/운영시간 변경 시 자동 계산하여 반영
-  if(rec>0){S.restMin=rec;document.getElementById('inpRest').value=rec;S.staff.forEach(s=>s.restMin=rec);}
+  // 추천값만 표시, 사용자 설정은 건드리지 않음 (일괄적용 버튼으로만 반영)
 }
 
 function applyGlobalRest(){const v=+document.getElementById('inpRest').value;S.staff.forEach(s=>s.restMin=v);renderRestGrid();toast('✅',`전체 ${v}분 적용`);}
@@ -391,15 +480,24 @@ function renderRestGrid(){/* 인원 목록에 통합됨 */}
 function renderZones(){
   const w=document.getElementById('zoneList');w.innerHTML='';
   S.zones.forEach((z,i)=>{
+    if(z.fixed===undefined)z.fixed=0;
     w.innerHTML+=`<div class="flex items-center gap-1.5 card-s p-2">
       <span class="w-4 h-4 rounded-full flex-shrink-0" style="background:${z.color}"></span>
-      <input class="inp text-sm py-1" style="flex:1" value="${z.name}" onchange="S.zones[${i}].name=this.value">
-      <input type="number" class="inp text-xs text-center py-1" style="width:45px" value="${z.min}" min="0" onchange="S.zones[${i}].min=+this.value" title="최소 인원">
+      <input class="inp text-sm py-1" lang="ko" style="flex:1" value="${z.name}" onchange="S.zones[${i}].name=this.value">
+      <input type="number" class="inp text-xs text-center py-1" style="width:45px" value="${z.min}" min="0" onchange="S.zones[${i}].min=+this.value;if(S.zones[${i}].fixed>+this.value)S.zones[${i}].fixed=+this.value;renderZones();" title="최소 인원">
+      <input type="number" class="inp text-xs text-center py-1" style="width:40px;background:${z.fixed>0?'#fef3c7':'#f8fafc'}" value="${z.fixed}" min="0" max="${z.min}" onchange="S.zones[${i}].fixed=Math.min(+this.value,S.zones[${i}].min);renderZones();autoSave();" title="🔒 교대 안하는 고정 자리">
       <input type="color" value="${z.color}" class="w-6 h-6 rounded cursor-pointer border-0 flex-shrink-0" onchange="S.zones[${i}].color=this.value;renderZones()">
       <button onclick="rmZone(${i})" class="text-red-400 hover:text-red-600 text-sm px-1 flex-shrink-0">✕</button></div>`;
   });
+  // 헤더 라벨
+  if(S.zones.length>0){
+    const header=document.createElement('div');
+    header.className='flex items-center gap-1.5 px-2 mb-1';
+    header.innerHTML=`<span class="w-4 flex-shrink-0"></span><span class="text-[10px] text-[#94a3b8]" style="flex:1">이름</span><span class="text-[10px] text-[#94a3b8]" style="width:45px;text-align:center">최소</span><span class="text-[10px] text-[#94a3b8]" style="width:40px;text-align:center">🔒고정</span><span class="w-6 flex-shrink-0"></span><span class="px-1 flex-shrink-0"></span>`;
+    w.prepend(header);
+  }
 }
-function addZone(){S.zones.push({name:`구역${S.zones.length+1}`,color:CL[S.zones.length%CL.length],min:1});renderZones();autoSave();}
+function addZone(){S.zones.push({name:`구역${S.zones.length+1}`,color:CL[S.zones.length%CL.length],min:1,fixed:0});renderZones();autoSave();}
 function rmZone(i){S.zones.splice(i,1);renderZones();autoSave();}
 
 // ===== STAFF =====
@@ -642,19 +740,210 @@ function genSchedule(){
     }
   }
 
+  // ===== 2단계: 사전 구역 배정 (각 인원이 속할 구역을 먼저 결정) =====
+  // 핵심 원칙: 각 인원은 정확히 maxParts개 이하 구역에 소속되며, 슬롯 배정에서 절대 벗어나지 않음
+  const zoneNames=S.zones.map(z=>z.name);
+  const preAssign={};all.forEach(n=>preAssign[n]=[]);
+  const zoneMembers={};zoneNames.forEach(n=>zoneMembers[n]=[]);
+
+  // Phase 0: 교대 안하는 고정 자리 먼저 배정
+  const fixedAssign={};all.forEach(n=>fixedAssign[n]=null); // code → zoneName or null
+  const fixedShuffled=[...all];
+  const fseed=new Date().getDate();
+  for(let i=fixedShuffled.length-1;i>0;i--){const j=(fseed*(i+1)*11+7)%fixedShuffled.length;[fixedShuffled[i],fixedShuffled[j]]=[fixedShuffled[j],fixedShuffled[i]];}
+  for(const z of S.zones){
+    const fc=z.fixed||0;
+    if(fc<=0)continue;
+    let assigned=0;
+    for(const code of fixedShuffled){
+      if(assigned>=fc)break;
+      if(fixedAssign[code]!==null)continue; // 이미 다른 구역에 고정
+      if(preAssign[code].length>0)continue;
+      fixedAssign[code]=z.name;
+      preAssign[code]=[z.name]; // 고정 인원은 이 구역만
+      zoneMembers[z.name].push(code);
+      assigned++;
+    }
+  }
+
+  // 2-Phase 사전 배정: 용량(N*maxParts) 안에서 모든 구역에 공정 배분
+  const totalCapacity=N*S.maxParts;
+  const totalMin=S.zones.reduce((s,z)=>s+z.min,0);
+  const remainCap=totalCapacity-S.zones.reduce((s,z)=>s+z.min+1,0); // Phase1 후 남은 용량
+  const zoneDemand=S.zones.map(z=>{
+    const base=z.min+1;
+    const extra=remainCap>0?Math.floor(z.min/totalMin*remainCap):0;
+    return {name:z.name,min:z.min,target:Math.min(N,base+extra)};
+  });
+
+  // 셔플 (날짜 기반 시드)
+  const shuffled=[...all];
+  const seed=new Date().getDate();
+  for(let i=shuffled.length-1;i>0;i--){const j=(seed*(i+1)*7+13)%shuffled.length;[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+
+  // Phase 1: 작은 구역부터 최소 min+2명 보장 (휴게 4명 고려, 작은 구역 밀려남 방지)
+  const restPerSlot=Math.max(1,N-Math.max(totalMin,S.fixedCount));
+  const minBuffer=Math.min(restPerSlot,Math.floor((totalCapacity-totalMin)/S.zones.length));
+  const phase1=[...zoneDemand].sort((a,b)=>a.min-b.min);
+  for(const zd of phase1){
+    const need=Math.min(N,zd.min+Math.max(2,minBuffer));
+    for(const code of shuffled){
+      if(zoneMembers[zd.name].length>=need)break;
+      if(fixedAssign[code]!==null||preAssign[code].length>=S.maxParts)continue;
+      if(preAssign[code].includes(zd.name))continue;
+      preAssign[code].push(zd.name);zoneMembers[zd.name].push(code);
+    }
+  }
+  // Phase 1.5: 슬롯별 커버리지 보정 (Phase 2 전에 실행하여 여유 용량 우선 사용)
+  // 여러 라운드 반복: 1라운드에서 배정하면 다른 슬롯의 가용인원이 늘어날 수 있으므로
+  for(let coverRound=0;coverRound<3;coverRound++){
+  for(let si=0;si<T;si++){
+    const resting=new Set(all.filter(n=>restPlan[n].includes(si)));
+    // 부족한 구역을 부족도 순으로 처리
+    const deficits=S.zones.map(z=>({zone:z,avail:zoneMembers[z.name].filter(c=>!resting.has(c)).length,need:z.min}))
+      .filter(d=>d.avail<d.need).sort((a,b)=>(b.need-b.avail)-(a.need-a.avail));
+    for(const d of deficits){
+      const deficit=d.need-d.avail;
+      // 이 슬롯에서 근무 가능, 이 구역 미소속, maxParts 미달인 인원
+      // 다른 구역의 가용 인원이 여유 있는 사람 우선 (그쪽에서 빠져도 영향 적으므로)
+      const candidates=all.filter(c=>!resting.has(c)&&fixedAssign[c]===null&&!preAssign[c].includes(d.zone.name)&&preAssign[c].length<S.maxParts)
+        .sort((a,b)=>{
+          const aScore=preAssign[a].reduce((s,zn)=>s+zoneMembers[zn].filter(x=>!resting.has(x)).length,0);
+          const bScore=preAssign[b].reduce((s,zn)=>s+zoneMembers[zn].filter(x=>!resting.has(x)).length,0);
+          return bScore-aScore; // 다른 구역에 인원 많은 사람 우선
+        });
+      for(let i=0;i<deficit&&candidates.length;i++){
+        const c=candidates.shift();
+        preAssign[c].push(d.zone.name);
+        zoneMembers[d.zone.name].push(c);
+      }
+    }
+  }} // end coverRound
+
+  // Phase 2: 큰 구역에 남은 용량 배분
+  const phase2=[...zoneDemand].sort((a,b)=>b.target-a.target);
+  for(const zd of phase2){
+    for(const code of shuffled){
+      if(zoneMembers[zd.name].length>=zd.target)break;
+      if(fixedAssign[code]!==null||preAssign[code].length>=S.maxParts)continue;
+      if(preAssign[code].includes(zd.name))continue;
+      preAssign[code].push(zd.name);zoneMembers[zd.name].push(code);
+    }
+  }
+
+  // 미배정 인원은 가장 인원 부족한 구역에 배정
+  all.forEach(code=>{
+    if(preAssign[code].length>0)return;
+    zoneDemand.sort((a,b)=>(zoneMembers[a.name].length/a.target)-(zoneMembers[b.name].length/b.target));
+    const best=zoneDemand[0];
+    preAssign[code].push(best.name);
+    zoneMembers[best.name].push(code);
+  });
+
+  // ===== 3단계: 사전 배정 기반으로 슬롯별 스케줄 생성 =====
+  // 핵심: 인원은 반드시 사전 배정된 구역에만 배치됨 (maxParts 보장)
+  // 전략: 단독구역 인원 먼저 → 공유인원은 부족한 구역에 우선 배분
   const schedule=[];
-  const rpt={};S.staff.filter(s=>s.type==='rotate').forEach(s=>rpt[s.code]=new Set());
   for(let si=0;si<T;si++){
     const time=ts[si];const resting=all.filter(n=>restPlan[n].includes(si));const working=all.filter(n=>!restPlan[n].includes(si));
     const pa={};S.zones.forEach(z=>pa[z.name]=[]);
-    const unpl=[...working];
-    for(const z of S.zones){while(pa[z.name].length<z.min&&unpl.length){
-      let pick=-1;for(let u=0;u<unpl.length;u++){if(rpt[unpl[u]]&&rpt[unpl[u]].size>=S.maxParts&&!rpt[unpl[u]].has(z.name))continue;pick=u;break;}
-      if(pick<0&&unpl.length)pick=0;if(pick<0)break;const n=unpl.splice(pick,1)[0];pa[z.name].push(n);if(rpt[n])rpt[n].add(z.name);}}
-    const support=[];for(const n of unpl){let ok=false;for(const z of S.zones){const cap=z.min+2;if(pa[z.name].length<cap){if(rpt[n]&&rpt[n].size>=S.maxParts&&!rpt[n].has(z.name))continue;pa[z.name].push(n);if(rpt[n])rpt[n].add(z.name);ok=true;break;}}if(!ok)support.push(n);}
+    const assigned=new Set();
+
+    // Phase 0: 고정 인원 강제 배치 (휴게가 아닌 한)
+    for(const c of working){
+      if(fixedAssign[c]){pa[fixedAssign[c]].push(c);assigned.add(c);}
+    }
+
+    // 이 슬롯에서 각 구역의 가용 인원 파악
+    const zoneAvail={};S.zones.forEach(z=>{zoneAvail[z.name]=working.filter(c=>preAssign[c].includes(z.name));});
+
+    // Phase A: 단독구역 인원(이 슬롯에서 1개 구역에만 소속) 먼저 배정
+    for(const c of working){
+      if(assigned.has(c))continue; // 고정 인원 스킵
+      if(preAssign[c].length===1){
+        pa[preAssign[c][0]].push(c);assigned.add(c);
+      }
+    }
+
+    // Phase B: 제약 전파 기반 배정 — 가장 촉박한 구역(가용인원≈최소인원)부터 배정
+    for(let iter=0;iter<20;iter++){
+      // 각 구역의 미충족 상태와 가용후보 수 계산
+      const zoneState=S.zones.map(z=>{
+        const cur=pa[z.name].length;
+        const avail=working.filter(c=>!assigned.has(c)&&preAssign[c].includes(z.name)).length;
+        return {name:z.name,min:z.min,cur,avail,need:z.min-cur,slack:avail-(z.min-cur)};
+      }).filter(z=>z.need>0);
+      if(!zoneState.length)break;
+      // slack(여유) 오름차순 정렬: 여유가 가장 적은 구역부터 (가용후보=필요인원이면 전원 배정 필수)
+      zoneState.sort((a,b)=>a.slack-b.slack);
+      let placed=false;
+      for(const z of zoneState){
+        const cands=working.filter(c=>!assigned.has(c)&&preAssign[c].includes(z.name));
+        if(!cands.length)continue;
+        // slack=0이면 모든 후보를 이 구역에 반드시 배정 (forced assignment)
+        if(z.slack<=0){
+          for(const c of cands){if(pa[z.name].length>=z.min)break;pa[z.name].push(c);assigned.add(c);placed=true;}
+          continue;
+        }
+        // slack>0: 다른 구역에 빠지면 안 되는 인원 먼저 (다른 구역의 slack도 확인)
+        cands.sort((a,b)=>{
+          // 이 사람을 이 구역에 안 보내면 다른 구역에서 쓸 수 있는지 평가
+          const aOtherSlack=preAssign[a].filter(zn=>zn!==z.name).reduce((s,zn)=>{
+            const oz=zoneState.find(x=>x.name===zn);return s+(oz?oz.slack:10);},0);
+          const bOtherSlack=preAssign[b].filter(zn=>zn!==z.name).reduce((s,zn)=>{
+            const oz=zoneState.find(x=>x.name===zn);return s+(oz?oz.slack:10);},0);
+          return bOtherSlack-aOtherSlack; // 다른 구역에 여유 많은 사람을 여기에 먼저
+        });
+        // 1명만 배정하고 상태 재계산
+        const c=cands[0];pa[z.name].push(c);assigned.add(c);placed=true;break;
+      }
+      if(!placed)break;
+    }
+
+    // Phase B2: 미달 구역 수리 — 초과 구역에서 인원을 빼서 미달 구역으로 스왑
+    for(let repair=0;repair<10;repair++){
+      const under=S.zones.filter(z=>pa[z.name].length<z.min);
+      if(!under.length)break;
+      let fixed=false;
+      for(const uz of under){
+        const need=uz.min-pa[uz.name].length;
+        // 초과 구역에서 이 구역에도 사전배정된 인원 찾기
+        const over=S.zones.filter(z=>pa[z.name].length>z.min);
+        for(const oz of over){
+          const swapCand=pa[oz.name].filter(c=>preAssign[c].includes(uz.name));
+          for(const c of swapCand){
+            if(pa[uz.name].length>=uz.min)break;
+            pa[oz.name]=pa[oz.name].filter(x=>x!==c);
+            pa[uz.name].push(c);
+            fixed=true;
+            if(pa[oz.name].length<oz.min)break; // 출발 구역도 미달이면 중단
+          }
+        }
+        // 미배정 인원 중에서도 탐색
+        const unassignedCands=working.filter(c=>!assigned.has(c)&&preAssign[c].includes(uz.name));
+        for(const c of unassignedCands){
+          if(pa[uz.name].length>=uz.min)break;
+          pa[uz.name].push(c);assigned.add(c);fixed=true;
+        }
+      }
+      if(!fixed)break;
+    }
+
+    // Phase C: 잔여 인원 → 사전 배정 구역 중 여유 있는 곳에 배치
+    const support=[];
+    for(const c of working.filter(c=>!assigned.has(c))){
+      let ok=false;
+      // 가장 인원이 적은 사전 배정 구역에 배치
+      const myZones=preAssign[c].map(zn=>({name:zn,cnt:pa[zn].length,min:S.zones.find(z=>z.name===zn)?.min||0})).sort((a,b)=>(a.cnt-a.min)-(b.cnt-b.min));
+      for(const mz of myZones){
+        if(pa[mz.name].length<mz.min+3){pa[mz.name].push(c);assigned.add(c);ok=true;break;}
+      }
+      if(!ok)support.push(c);
+    }
     schedule.push({time,pa,rest:resting,support});
   }
   S.sch=schedule;
+  S.fixedMembers=fixedAssign; // 고정 인원 정보 저장
 
   if(!S.nameEntries.length){for(let i=0;i<S.staff.length;i++)S.nameEntries.push({id:S.nextNameId++,name:''});}
 
@@ -662,11 +951,6 @@ function genSchedule(){
   document.getElementById('exportWrap').style.display='';
 
   renderSchTable();renderNameBank();validateRules();autoSave();
-  // 설정 + 저장목록 접기
-  document.querySelectorAll('.collapse-btn.open').forEach(btn=>{
-    const id=btn.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
-    if(id){const el=document.getElementById(id);if(el){el.style.display='none';btn.classList.remove('open');}}
-  });
   toast('✅','스케줄 생성 완료!');
 }
 
@@ -686,7 +970,7 @@ function renderSchTable(){
       h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#9a3412')).join('')||dash()}</td>`;
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#d1fae5','#059669')).join('')}
-      <input type="text" class="inp text-[9px] py-0 mt-1" style="width:45px;padding:2px 3px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
+      <input type="text" class="inp text-[9px] py-0 mt-1" lang="ko" style="width:45px;padding:2px 3px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
   w.innerHTML=h;
@@ -699,26 +983,36 @@ function renderSchTable(){
   bindSchDnD();
 }
 
+function getCodeZoneCount(code){
+  if(!S.sch)return 0;
+  const zones=new Set();
+  S.sch.forEach(sl=>{for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))zones.add(zone);}});
+  return zones.size;
+}
 function makeTag(code,si,from,bg,fg){
   const mapped=!!S.nameMap[code];const col=codeColor(code);
   const idx=S.staff.findIndex(s=>s.code===code);
   const pastel=PASTEL[(idx>=0?idx:0)%PASTEL.length];
+  const overMax=from!=='__rest__'&&from!=='__support__'&&getCodeZoneCount(code)>S.maxParts;
+  const isFixed=S.fixedMembers&&S.fixedMembers[code]&&from!=='__rest__';
   if(!bg){
     if(mapped){bg=pastel;fg=col;}
     else{bg='#f8fafc';fg='#94a3b8';}
   }
-  return `<span class="sch-tag ${mapped?'mapped':'unmapped'}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
-    style="background:${bg};color:${fg}${!mapped?';border:1px dashed #e2e8f0!important':''}" data-dn="${code}">${dn(code)}</span>`;
+  const warnStyle=overMax?';outline:2px solid #dc2626;outline-offset:-1px':'';
+  const fixedIcon=isFixed&&S.fixedMembers[code]===from?'🔒':'';
+  return `<span class="sch-tag ${mapped?'mapped':'unmapped'}${overMax?' over-max':''}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
+    style="background:${bg};color:${fg}${!mapped?';border:1px dashed #e2e8f0!important':''}${warnStyle}" data-dn="${code}" title="${isFixed?'🔒 고정 자리':''}${overMax?' ⚠️ 최대파트 초과!':''}">${fixedIcon}${dn(code)}${overMax?' ⚠':''}</span>`;
 }
 function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
 
 function renderSummary(){
   const w=document.getElementById('summaryWrap');if(!w||!S.sch)return;
   let h=`<h4 class="text-xs font-bold text-[#1e3a5f] mb-2">📊 요약</h4><div class="grid grid-cols-2 gap-1.5">`;
-  S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const col=CL[i%CL.length];
-    h+=`<div class="p-1.5 rounded-lg bg-white border text-[10px] flex items-center justify-between" style="border-color:${col}30">
+  S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const zc=getCodeZoneCount(s.code);const col=CL[i%CL.length];const overMax=zc>S.maxParts;
+    h+=`<div class="p-1.5 rounded-lg bg-white border text-[10px] flex items-center justify-between" style="border-color:${overMax?'#dc2626':col+'30'}${overMax?';background:#fef2f2':''}">
       <span class="font-bold" style="color:${col}" data-dn="${s.code}">${dn(s.code)}</span>
-      <span class="text-[#64748b] text-right">${wc}h 휴${rc*S.restUnit}분</span></div>`;});
+      <span class="text-right" style="color:${overMax?'#dc2626':'#64748b'}">${wc}h 휴${rc*S.restUnit}분 <b>${zc}구역</b>${overMax?' ⚠️':''}</span></div>`;});
   h+=`</div>`;
   w.innerHTML=h;
 }
@@ -728,11 +1022,15 @@ function renderSchTags(){
     const code=el.dataset.dn;const mapped=!!S.nameMap[code];const col=codeColor(code);
     const idx=S.staff.findIndex(s=>s.code===code);
     const pastel=PASTEL[(idx>=0?idx:0)%PASTEL.length];
-    el.textContent=dn(code);
-    el.className='sch-tag '+(mapped?'mapped':'unmapped');
-    if(el.dataset.from==='__rest__'){el.style.background=mapped?'#ffedd5':'#f8fafc';el.style.color=mapped?'#9a3412':'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
-    else if(el.dataset.from==='__support__'){el.style.background=mapped?'#d1fae5':'#f8fafc';el.style.color=mapped?'#065f46':'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
+    const from=el.dataset.from;
+    const overMax=from!=='__rest__'&&from!=='__support__'&&getCodeZoneCount(code)>S.maxParts;
+    el.textContent=dn(code)+(overMax?' ⚠':'');
+    el.className='sch-tag '+(mapped?'mapped':'unmapped')+(overMax?' over-max':'');
+    if(from==='__rest__'){el.style.background=mapped?'#ffedd5':'#f8fafc';el.style.color=mapped?'#9a3412':'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
+    else if(from==='__support__'){el.style.background=mapped?'#d1fae5':'#f8fafc';el.style.color=mapped?'#065f46':'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
     else{el.style.background=mapped?pastel:'#f8fafc';el.style.color=mapped?col:'#94a3b8';el.style.border=mapped?'none':'1px dashed #e2e8f0';}
+    el.style.outline=overMax?'2px solid #dc2626':'';el.style.outlineOffset=overMax?'-1px':'';
+    el.title=overMax?'⚠️ 최대파트 초과!':'';
   });
   // 요약 영역 텍스트
   document.querySelectorAll('[data-dn]:not(.sch-tag)').forEach(el=>{el.textContent=dn(el.dataset.dn);});
@@ -815,6 +1113,18 @@ function bindSchDnD(){
       const toSi=+cell.dataset.si;const toCol=cell.dataset.col;
       if(fromSi!==toSi){toast('⚠️','같은 시간대 내에서만 이동');return;}
       if(from===toCol)return;
+      // maxParts 체크: 구역으로 이동 시 해당 인원이 이미 maxParts개 구역에 배정되었는지 확인
+      const isToZone=toCol!=='__rest__'&&toCol!=='__support__';
+      const isFromZone=from!=='__rest__'&&from!=='__support__';
+      if(isToZone){
+        const currentZones=new Set();
+        S.sch.forEach(sl=>{for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(code))currentZones.add(zone);}});
+        // 원래 구역에서 빠지면 해당 구역의 다른 슬롯에도 있는지 확인
+        if(isFromZone){const stillInFrom=S.sch.some((sl,i)=>i!==toSi&&sl.pa[from]&&sl.pa[from].includes(code));if(!stillInFrom)currentZones.delete(from);}
+        if(!currentZones.has(toCol)&&currentZones.size>=S.maxParts){
+          toast('⚠️',`${dn(code)}: 최대 ${S.maxParts}개 구역 초과!`);return;
+        }
+      }
       const sl=S.sch[toSi];
       if(from==='__rest__')sl.rest=sl.rest.filter(c=>c!==code);
       else if(from==='__support__')sl.support=sl.support.filter(c=>c!==code);
@@ -822,7 +1132,7 @@ function bindSchDnD(){
       if(toCol==='__rest__')sl.rest.push(code);
       else if(toCol==='__support__')sl.support.push(code);
       else if(sl.pa[toCol])sl.pa[toCol].push(code);
-      renderSchTable();renderNameBank();autoSave();
+      renderSchTable();renderNameBank();validateRules();autoSave();
       toast('✅',`${dn(code)} 이동 완료`);
     });
   });
@@ -906,106 +1216,218 @@ function validateRules(){
   // 근무/휴게 분리
   const r4fail=S.sch.filter(sl=>{const w=Object.values(sl.pa).flat();return w.some(n=>sl.rest.includes(n));});
   const r4={name:'근무/휴게 분리',ok:!r4fail.length,reason:r4fail.length?`${r4fail[0].time} 중복 배치`:''};
-  const rules=[r1,r2,r3,r4];
+  // 최대 파트 수 체크
+  const r5fail=S.staff.filter(s=>{const zones=new Set();S.sch.forEach(sl=>{for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(s.code))zones.add(zone);}});return zones.size>S.maxParts;});
+  const r5={name:`최대 파트(${S.maxParts})`,ok:!r5fail.length,reason:r5fail.length?`${r5fail.map(s=>dn(s.code)).slice(0,3).join(',')} 등 ${r5fail.length}명 초과`:''};
+  // 구역 최소인원 체크
+  const r6fail=[];S.sch.forEach(sl=>{S.zones.forEach(z=>{if((sl.pa[z.name]||[]).length<z.min)r6fail.push({time:sl.time,zone:z.name,have:(sl.pa[z.name]||[]).length,need:z.min});});});
+  const r6={name:'구역 최소인원',ok:!r6fail.length,reason:r6fail.length?`${r6fail[0].time} ${r6fail[0].zone} ${r6fail[0].have}/${r6fail[0].need}명`:''};
+  const rules=[r1,r2,r3,r4,r5,r6];
   const g=document.getElementById('ruleGrid');g.innerHTML='';
   rules.forEach(r=>{g.innerHTML+=`<div class="flex items-center justify-between gap-2 p-1.5 rounded-lg ${r.ok?'bg-green-50':'bg-red-50'} text-xs font-medium">
     <span class="${r.ok?'text-green-700':'text-red-700'}">${r.ok?'✅':'⚠️'} ${r.name}</span>
     ${r.reason?`<span class="text-red-500 text-[10px]">${r.reason}</span>`:''}</div>`;});
   document.getElementById('ruleBox').classList.remove('hidden');
+
+  // ===== 오류 분석 =====
+  const analysis=[];
+  if(!r1.ok){
+    const worst=r1fail.reduce((a,b)=>Object.values(a.pa).flat().length<Object.values(b.pa).flat().length?a:b);
+    const wCount=Object.values(worst.pa).flat().length;
+    analysis.push(`⚠️ <b>상시 인원 미달:</b> ${worst.time} 시간대에 근무 인원이 ${wCount}명으로 상시 최소 ${S.fixedCount}명에 ${S.fixedCount-wCount}명 부족합니다. 총원을 늘리거나 1인 휴게 시간을 줄여 동시 휴게 인원을 낮추세요.`);
+  }
+  if(!r2.ok){
+    const names=r2fail.slice(0,2).map(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dn(s.code)}(${rc*S.restUnit}/${s.restMin}분)`;}).join(', ');
+    analysis.push(`⚠️ <b>개인 휴게 미충족:</b> ${names} 등이 설정된 휴게시간을 채우지 못했습니다. 운영시간 대비 인원이 부족하여 휴게 배정 여유가 없습니다. 총원을 늘리거나 휴게시간을 줄여보세요.`);
+  }
+  if(!r3.ok){
+    analysis.push(`⚠️ <b>연속 휴게:</b> ${r3fail.map(s=>dn(s.code)).join(', ')}이 3시간 이상 연속 휴게입니다. 휴게 분산 모드를 'AI 분산'으로 변경하거나 휴게 단위를 조정하세요.`);
+  }
+  if(!r4.ok){
+    analysis.push(`⚠️ <b>근무/휴게 충돌:</b> ${r4fail[0].time}에 같은 인원이 근무와 휴게에 동시 배정되었습니다. 자동 생성을 다시 실행하거나 해당 시간대에서 수동으로 인원을 이동하세요.`);
+  }
+  if(!r5.ok){
+    const detail=r5fail.slice(0,2).map(s=>{const zones=new Set();S.sch.forEach(sl=>{for(const[z,a]of Object.entries(sl.pa)){if(a.includes(s.code))zones.add(z);}});return `${dn(s.code)}(${[...zones].join('/')})`;}).join(', ');
+    analysis.push(`⚠️ <b>최대 파트 초과:</b> ${detail}이 ${S.maxParts}개 구역 제한을 초과했습니다. 자동생성을 다시 실행하거나 수동으로 구역을 조정하세요.`);
+  }
+  if(!r6.ok){
+    const grouped={};r6fail.forEach(f=>{if(!grouped[f.zone])grouped[f.zone]=[];grouped[f.zone].push(f);});
+    const detail=Object.entries(grouped).slice(0,2).map(([z,fails])=>`${z}(${fails.length}개 시간대 ${fails[0].have}/${fails[0].need}명)`).join(', ');
+    analysis.push(`⚠️ <b>구역 최소인원 미달:</b> ${detail}. 해당 구역에 배정된 인원이 부족합니다. 총원을 늘리거나 고정 자리/최소인원 설정을 조정하세요.`);
+  }
+
+  const aEl=document.getElementById('ruleAnalysis');
+  if(analysis.length){
+    aEl.classList.remove('hidden');
+    aEl.innerHTML=`<div class="p-3 rounded-lg bg-red-50 border border-red-200 space-y-2">
+      <h4 class="text-sm font-bold text-red-700">💡 오류 분석</h4>
+      ${analysis.map(a=>`<p class="text-[13px] text-red-800 leading-relaxed">${a}</p>`).join('')}
+    </div>`;
+  }else{
+    aEl.classList.add('hidden');
+    aEl.innerHTML='';
+  }
 }
 
-// ===== ATTENDANCE =====
-function initAtt(){S.staff.forEach(s=>{if(!S.attend[s.code])S.attend[s.code]={in:false,time:null,mod:false};});}
-function resetAtt(){S.attend={};initAtt();renderAtt();autoSave();toast('↺','출결 초기화');}
-function checkIn(code){const now=new Date();S.attend[code]={in:true,time:`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,mod:false};renderAtt();autoSave();toast('✅',`${dn(code)} 출근`);}
-function editAtt(code){const cur=S.attend[code]?.time||'';const v=prompt(`${dn(code)} 출근 시간 (HH:MM):`,cur);if(v&&/^\d{2}:\d{2}$/.test(v)){S.attend[code]={in:true,time:v,mod:true};renderAtt();autoSave();}}
-function cancelIn(code){S.attend[code]={in:false,time:null,mod:false};renderAtt();autoSave();}
-// ===== 출결 탭에서 이름 직접 입력 (nameMap 갱신 → 스케줄·지각자에도 반영) =====
-function setAttName(code,val){S.nameMap[code]=val;autoSave();}            // 입력 중: 포커스 유지 위해 재렌더 안 함
-function commitAttName(code){                                            // 입력 확정(blur): 정리 + 이름 목록 동기화
+// ===== ATTENDANCE (다회차 누적 지각) =====
+function uid(){return 'x'+Math.random().toString(36).slice(2,9);}
+function ensureSessions(){
+  if(!Array.isArray(S.sessions))S.sessions=[];
+  // 레거시 단일 출결(attend) → 1회차로 1회 마이그레이션
+  if(!S.sessions.length && S.attend && Object.keys(S.attend).length){
+    const recs={};for(const[c,a]of Object.entries(S.attend)){if(a&&a.in&&a.time)recs[c]={time:a.time};}
+    S.sessions=[{id:uid(),label:'1회차',base:'10:30',recs}];
+  }
+  if(!S.sessions.length)S.sessions=[{id:uid(),label:'1회차',base:'09:00',recs:{}}];
+  S.sessions.forEach(ss=>{if(!ss.recs)ss.recs={};if(!ss.base)ss.base='09:00';if(!ss.id)ss.id=uid();});
+}
+function initAtt(){ ensureSessions(); }
+function resetAttAll(){
+  if(!confirm('모든 회차의 도착 시각 기록을 지울까요? (이름·회차 구성은 유지됩니다)'))return;
+  S.sessions.forEach(ss=>ss.recs={});
+  renderAtt();autoSave();toast('↺','출결 기록 초기화');
+}
+// ---- 회차(열) CRUD ----
+function addSession(){
+  ensureSessions();const last=S.sessions[S.sessions.length-1];
+  S.sessions.push({id:uid(),label:`${S.sessions.length+1}회차`,base:last?last.base:'09:00',recs:{}});
+  renderAtt();autoSave();toast('➕','회차 추가');
+}
+function removeSession(id){
+  if(S.sessions.length<=1){toast('⚠️','최소 1개 회차가 필요합니다');return;}
+  const ss=S.sessions.find(s=>s.id===id);
+  if(!confirm(`'${ss&&ss.label||'회차'}' 회차를 삭제할까요?`))return;
+  S.sessions=S.sessions.filter(s=>s.id!==id);renderAtt();autoSave();
+}
+function setSessionLabel(id,v){const ss=S.sessions.find(s=>s.id===id);if(ss){ss.label=v;dsave();}}
+function setSessionBase(id,v){const ss=S.sessions.find(s=>s.id===id);if(ss){ss.base=v||'09:00';renderAtt();autoSave();}}
+function setArrival(id,code,v){
+  const ss=S.sessions.find(s=>s.id===id);if(!ss)return;
+  if(v)ss.recs[code]={time:v};else delete ss.recs[code];
+  renderAtt();autoSave();
+}
+// ---- 인원(행) CRUD : staff + nameMap 공용 → 근무표와 자동 연동 ----
+function nextCode(){let m=0;S.staff.forEach(s=>{const n=+s.code;if(n>m)m=n;});return String(m+1);}
+function addPerson(){
+  const code=nextCode();
+  S.staff.push({code,type:'rotate',restMin:S.restMin});S.nameMap[code]='';
+  const cnt=document.getElementById('inpStaffCount');if(cnt)cnt.value=S.staff.length;
+  renderAtt();autoSave();
+  setTimeout(()=>{const ins=document.querySelectorAll('#attGrid .xls-name-inp');if(ins.length)ins[ins.length-1].focus();},40);
+}
+function removePerson(code){
+  const nm=S.nameMap[code]||code+'번';
+  if(!confirm(`'${nm}' 을(를) 명단에서 삭제할까요?\n근무표·출결 모두 반영됩니다.`))return;
+  S.staff=S.staff.filter(s=>s.code!==code);
+  delete S.nameMap[code];
+  S.sessions.forEach(ss=>{if(ss.recs)delete ss.recs[code];});
+  if(S.fixedMembers)delete S.fixedMembers[code];
+  if(S.sch)S.sch.forEach(sl=>{sl.rest=(sl.rest||[]).filter(c=>c!==code);sl.support=(sl.support||[]).filter(c=>c!==code);if(sl.pa)for(const z in sl.pa)sl.pa[z]=sl.pa[z].filter(c=>c!==code);});
+  const cnt=document.getElementById('inpStaffCount');if(cnt)cnt.value=S.staff.length;
+  renderAtt();if(S.sch)renderSchTable();autoSave();toast('🗑️','삭제됨');
+}
+// ---- 이름 직접 입력 (nameMap → 근무표 자동 연동) ----
+let _dsaveT=null;function dsave(){clearTimeout(_dsaveT);_dsaveT=setTimeout(autoSave,400);}
+function setAttName(code,val){S.nameMap[code]=val;dsave();}              // 입력 중: 포커스 유지(재렌더 X)
+function commitAttName(code){                                            // 입력 확정(blur)
   const name=(S.nameMap[code]||'').trim();S.nameMap[code]=name;
   if(name&&!S.nameEntries.some(e=>e.name===name))S.nameEntries.push({id:S.nextNameId++,name});
   autoSave();
+  if(attSort.key==='name')renderAtt();                                   // 가나다 정렬 중이면 재정렬
 }
-function attNameNav(e,idx){                                              // Enter → 다음 행 이름칸으로 이동
+function attNameNav(e,idx){                                              // Enter → 다음 행 이름칸 이동
   if(e.key!=='Enter')return;e.preventDefault();
-  const inps=document.querySelectorAll('#attList .att-name-inp');
+  const inps=document.querySelectorAll('#attGrid .xls-name-inp');
   const nx=inps[idx+1];if(nx){nx.focus();if(nx.select)nx.select();}else e.target.blur();
 }
-function bulkAttNames(){                                                 // 이름 일괄 붙여넣기 → 1번부터 순서대로 배정
-  if(!S.staff.length){toast('⚠️','먼저 설정에서 총원을 정해주세요');return;}
-  const raw=prompt('이름을 줄바꿈 또는 쉼표로 구분해 붙여넣으세요.\n위에서부터 순서대로 1번, 2번… 에 배정됩니다.');
+function bulkAttNames(){                                                 // 이름 일괄 붙여넣기 → 명단 채우기(부족하면 자동 추가)
+  const raw=prompt('이름을 줄바꿈 또는 쉼표로 구분해 붙여넣으세요.\n명단 위에서부터 순서대로 채워지고, 인원이 부족하면 자동으로 추가됩니다.');
   if(raw==null)return;
   const names=raw.split(/[\t\n,]+/).map(s=>s.trim()).filter(Boolean);
   if(!names.length){toast('⚠️','이름을 인식할 수 없습니다');return;}
-  S.staff.forEach((s,i)=>{if(i<names.length){S.nameMap[s.code]=names[i];
-    if(!S.nameEntries.some(e=>e.name===names[i]))S.nameEntries.push({id:S.nextNameId++,name:names[i]});}});
-  renderAtt();autoSave();
-  toast('✅',`${Math.min(names.length,S.staff.length)}명 이름 배정`);
+  names.forEach((nm,i)=>{
+    if(i>=S.staff.length){const code=nextCode();S.staff.push({code,type:'rotate',restMin:S.restMin});}
+    const code=S.staff[i].code;S.nameMap[code]=nm;
+    if(!S.nameEntries.some(e=>e.name===nm))S.nameEntries.push({id:S.nextNameId++,name:nm});
+  });
+  const cnt=document.getElementById('inpStaffCount');if(cnt)cnt.value=S.staff.length;
+  renderAtt();autoSave();toast('✅',`${names.length}명 입력`);
 }
-function lateMin(t,b){if(!t)return 0;const[ah,am]=t.split(':').map(Number);const[bh,bm]=b.split(':').map(Number);return(ah*60+am)-(bh*60+bm);}
-// ===== 출결 정렬 (열 머리글 클릭: 오름차순 ▲ → 내림차순 ▼ → 번호순 기본) =====
-let attSort={key:null,dir:'asc'};   // key:null=번호순(기본), 'name'|'status'|'time'|'late'
+function lateMin(t,b){if(!t||!b)return 0;const[ah,am]=t.split(':').map(Number);const[bh,bm]=b.split(':').map(Number);return(ah*60+am)-(bh*60+bm);}
+// 한 사람의 전 회차 누적 지각(분, 횟수)
+function personLateTotal(code){let min=0,count=0;S.sessions.forEach(ss=>{const r=ss.recs&&ss.recs[code];if(r&&r.time){const lm=lateMin(r.time,ss.base);if(lm>0){min+=lm;count++;}}});return{min,count};}
+function sessionLateCount(ss){let late=0;S.staff.forEach(s=>{const r=ss.recs&&ss.recs[s.code];if(r&&r.time&&lateMin(r.time,ss.base)>0)late++;});return{late};}
+// ===== 정렬 (가나다 / 총지각) — 3단계 토글 =====
+let attSort={key:null,dir:'asc'};   // null=번호순
 function setAttSort(key){
-  if(attSort.key!==key){attSort.key=key;attSort.dir='asc';}
-  else if(attSort.dir==='asc'){attSort.dir='desc';}
-  else{attSort.key=null;attSort.dir='asc';}   // 같은 열 3번째 클릭 → 번호순 복귀
+  if(attSort.key!==key){attSort.key=key;attSort.dir=key==='late'?'desc':'asc';}
+  else{
+    const atDefault=(key==='late')?(attSort.dir==='desc'):(attSort.dir==='asc');
+    if(atDefault)attSort.dir=(attSort.dir==='asc')?'desc':'asc';
+    else{attSort.key=null;attSort.dir='asc';}
+  }
   renderAtt();
 }
 function attSortArrow(key){return attSort.key===key?(attSort.dir==='asc'?' ▲':' ▼'):' <span class="att-sort-dim">↕</span>';}
 function attSortedStaff(){
   const arr=S.staff.slice();const{key,dir}=attSort;
   if(!key)return arr;
-  const base=document.getElementById('attendBase').value||'10:30';
-  const blank=key==='name'||key==='time';
-  const val=s=>{const a=S.attend[s.code]||{};
-    if(key==='name')return (S.nameMap[s.code]||'').trim();
-    if(key==='status')return a.in?1:0;
-    if(key==='time')return a.in&&a.time?a.time:'';
-    if(key==='late')return a.in?lateMin(a.time,base):-1;
-    return 0;};
   arr.sort((x,y)=>{
-    const xv=val(x),yv=val(y);
-    if(blank){const xe=xv==='',ye=yv==='';
-      if(xe&&ye)return Number(x.code)-Number(y.code);
-      if(xe)return 1;if(ye)return -1;}            // 빈 값(미입력·미출근)은 항상 뒤로
-    let c=key==='name'?xv.localeCompare(yv,'ko'):key==='time'?xv.localeCompare(yv):xv-yv;
-    if(c===0)c=Number(x.code)-Number(y.code);     // 동률이면 번호순
+    let c;
+    if(key==='name'){
+      const xn=(S.nameMap[x.code]||'').trim(),yn=(S.nameMap[y.code]||'').trim();
+      if(!xn&&!yn)return Number(x.code)-Number(y.code);
+      if(!xn)return 1;if(!yn)return -1;
+      c=xn.localeCompare(yn,'ko');
+    }else c=personLateTotal(x.code).min-personLateTotal(y.code).min;
+    if(c===0)c=Number(x.code)-Number(y.code);
     return dir==='desc'?-c:c;
   });
   return arr;
 }
 function renderAtt(){
-  const base=document.getElementById('attendBase').value||'10:30';
-  const lates=S.staff.filter(s=>{const a=S.attend[s.code];return a&&a.in&&lateMin(a.time,base)>0;});
-  const ls=document.getElementById('lateSummary');const ll=document.getElementById('lateList');
-  if(lates.length){ls.classList.remove('hidden');ll.innerHTML='';
-    lates.forEach(s=>{const a=S.attend[s.code];const m=lateMin(a.time,base);const col=codeColor(s.code);
-      ll.innerHTML+=`<div class="flex items-center justify-between card-s p-2">
-        <div class="flex items-center gap-2"><div class="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white" style="background:${col}">${s.code}</div>
-        <span class="text-sm font-bold">${dn(s.code)}</span><span class="late-badge">+${m}분</span></div>
-        <span class="text-xs text-[#64748b]">${a.time}</span></div>`;});
-  }else ls.classList.add('hidden');
-  const w=document.getElementById('attList');
-  let h=`<table class="w-full"><thead><tr><th class="sch-cell text-left text-xs text-[#64748b] att-sortable" onclick="setAttSort('name')">이름${attSortArrow('name')}</th><th class="sch-cell text-xs text-[#64748b] att-sortable" onclick="setAttSort('status')">상태${attSortArrow('status')}</th><th class="sch-cell text-xs text-[#64748b] att-sortable" onclick="setAttSort('time')">시간${attSortArrow('time')}</th><th class="sch-cell text-xs text-[#64748b] att-sortable" onclick="setAttSort('late')">지각${attSortArrow('late')}</th><th class="sch-cell text-xs text-[#64748b]">관리</th></tr></thead><tbody>`;
-  attSortedStaff().forEach((s,i)=>{const a=S.attend[s.code]||{in:false};const col=codeColor(s.code);const late=a.in&&lateMin(a.time,base)>0;const lm=a.in?lateMin(a.time,base):0;
-    h+=`<tr class="hover:bg-slate-50">
-      <td class="sch-cell text-left"><div class="flex items-center gap-1.5"><div class="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style="background:${col}">${s.code}</div><input type="text" class="att-name-inp" value="${(S.nameMap[s.code]||'').replace(/"/g,'&quot;')}" placeholder="이름 입력" lang="ko" oninput="setAttName('${s.code}',this.value)" onchange="commitAttName('${s.code}')" onkeydown="attNameNav(event,${i})">${a.mod?'<span class="text-[9px] text-amber-600">(수정)</span>':''}</div></td>
-      <td class="sch-cell text-center">${a.in?'<span class="ontime-badge">출근</span>':'<span class="text-[#94a3b8] text-xs">-</span>'}</td>
-      <td class="sch-cell text-center font-mono text-sm">${a.time||'-'}</td>
-      <td class="sch-cell text-center">${a.in?(late?`<span class="late-badge">+${lm}분</span>`:'<span class="ontime-badge">정시</span>'):'-'}</td>
-      <td class="sch-cell text-center"><div class="flex justify-center gap-1">
-        ${!a.in?`<button onclick="checkIn('${s.code}')" class="btn btn-g text-[10px] py-1 px-2">✓</button>`:''}
-        ${a.in?`<button onclick="editAtt('${s.code}')" class="btn btn-w text-[10px] py-1 px-1.5">✏️</button><button onclick="cancelIn('${s.code}')" class="btn btn-d text-[10px] py-1 px-1.5">✕</button>`:''}
-      </div></td></tr>`;});
-  h+=`</tbody></table>`;
-  const total=S.staff.length;const chk=S.staff.filter(s=>S.attend[s.code]?.in).length;
-  h+=`<div class="mt-3 p-3 rounded-xl card-s flex items-center justify-around flex-wrap gap-2">
-    <div class="text-center"><div class="text-lg font-bold text-[#1e3a5f]">${total}</div><div class="text-[10px] text-[#64748b]">전체</div></div>
-    <div class="text-center"><div class="text-lg font-bold text-emerald-600">${chk}</div><div class="text-[10px] text-[#64748b]">출근</div></div>
-    <div class="text-center"><div class="text-lg font-bold text-[#94a3b8]">${total-chk}</div><div class="text-[10px] text-[#64748b]">미출근</div></div>
-    <div class="text-center"><div class="text-lg font-bold text-red-600">${lates.length}</div><div class="text-[10px] text-[#64748b]">지각</div></div></div>`;
-  w.innerHTML=h;
+  const wrap=document.getElementById('attGrid');if(!wrap)return;
+  ensureSessions();
+  const na=document.getElementById('sortNameArrow');if(na)na.textContent=attSort.key==='name'?(attSort.dir==='asc'?'▲':'▼'):'';
+  const la=document.getElementById('sortLateArrow');if(la)la.textContent=attSort.key==='late'?(attSort.dir==='asc'?'▲':'▼'):'';
+  const people=attSortedStaff();const sess=S.sessions;
+  let h='<div class="xls-scroll"><table class="xls"><thead><tr>';
+  h+=`<th class="xls-h xls-sticky-l xls-name-h" onclick="setAttSort('name')">이름${attSortArrow('name')}</th>`;
+  sess.forEach((ss,si)=>{
+    h+=`<th class="xls-h xls-sess"><div class="xls-sess-top"><input class="xls-sess-label" value="${esc(ss.label||'')}" placeholder="${si+1}회차" oninput="setSessionLabel('${ss.id}',this.value)">${sess.length>1?`<button class="xls-sess-del" onclick="removeSession('${ss.id}')" title="회차 삭제">✕</button>`:''}</div><div class="xls-sess-base">기준<input type="time" value="${ss.base||'09:00'}" onchange="setSessionBase('${ss.id}',this.value)"></div></th>`;
+  });
+  h+=`<th class="xls-h xls-add-col"><button class="xls-addsess" onclick="addSession()" title="회차 추가">＋</button></th>`;
+  h+=`<th class="xls-h xls-sticky-r xls-total-h" onclick="setAttSort('late')">총 지각${attSortArrow('late')}</th>`;
+  h+='</tr></thead><tbody>';
+  if(!people.length){
+    h+=`<tr><td class="xls-c" colspan="${sess.length+3}" style="padding:26px;color:#94a3b8">아직 인원이 없습니다. <b>＋ 인원</b> 또는 <b>👥 일괄</b>로 명단을 추가하세요.</td></tr>`;
+  }
+  people.forEach((s,ri)=>{
+    h+='<tr>';
+    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in"><span class="xls-no" style="background:${codeColor(s.code)}">${s.code}</span><input class="xls-name-inp" value="${(S.nameMap[s.code]||'').replace(/"/g,'&quot;')}" placeholder="이름" lang="ko" oninput="setAttName('${s.code}',this.value)" onchange="commitAttName('${s.code}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${s.code}')" title="삭제">✕</button></div></td>`;
+    sess.forEach(ss=>{
+      const r=(ss.recs&&ss.recs[s.code])||{};const t=r.time||'';
+      const lm=t?lateMin(t,ss.base):null;
+      const cls=lm===null?'':(lm>0?'xls-late':'xls-ontime');
+      const badge=lm===null?'':(lm>0?`<span class="xls-lm">+${lm}분</span>`:`<span class="xls-ok">정시</span>`);
+      h+=`<td class="xls-c xls-cell ${cls}"><input type="time" class="xls-time" value="${t}" onchange="setArrival('${ss.id}','${s.code}',this.value)">${badge}</td>`;
+    });
+    h+='<td class="xls-c xls-add-col"></td>';
+    const tot=personLateTotal(s.code);
+    h+=`<td class="xls-c xls-sticky-r xls-total">${tot.min>0?`<b class="xls-total-min">+${tot.min}분</b><span class="xls-total-cnt">${tot.count}회 지각</span>`:'<span class="xls-dash">–</span>'}</td>`;
+    h+='</tr>';
+  });
+  h+='</tbody>';
+  if(people.length){
+    h+=`<tfoot><tr><td class="xls-f xls-sticky-l">합계 ${people.length}명</td>`;
+    sess.forEach(ss=>{const c=sessionLateCount(ss);h+=`<td class="xls-f">${c.late?`<span style="color:#dc2626">${c.late}명</span>`:'0명'}</td>`;});
+    h+='<td class="xls-f xls-add-col"></td>';
+    const grand=people.reduce((a,s)=>a+personLateTotal(s.code).min,0);
+    h+=`<td class="xls-f xls-sticky-r">${grand>0?`<span style="color:#dc2626">+${grand}분</span>`:'–'}</td>`;
+    h+='</tr></tfoot>';
+  }
+  h+='</table></div>';
+  wrap.innerHTML=h;
 }
 
 // ===== TOAST =====
@@ -1019,7 +1441,8 @@ function getSerializableState(){
   return {openH:S.openH,closeH:S.closeH,restMin:S.restMin,restUnit:S.restUnit,
     maxParts:S.maxParts,fixedCount:S.fixedCount,restMode:S.restMode,
     zones:S.zones,staff:S.staff,nameMap:S.nameMap,
-    nameEntries:S.nameEntries,nextNameId:S.nextNameId,sch:S.sch,attend:S.attend};
+    nameEntries:S.nameEntries,nextNameId:S.nextNameId,sch:S.sch,attend:S.attend,
+    sessions:S.sessions||[],fixedMembers:S.fixedMembers||{}};
 }
 
 // ===== UNDO =====
@@ -1058,7 +1481,8 @@ function applyState(d){
   S.restMode=d.restMode||'smart';
   S.zones=d.zones||[];S.staff=d.staff||[];
   S.nameMap=d.nameMap||{};S.nameEntries=d.nameEntries||[];
-  S.nextNameId=d.nextNameId||0;S.sch=d.sch||null;S.attend=d.attend||{};
+  S.nextNameId=d.nextNameId||0;S.sch=d.sch||null;S.attend=d.attend||{};S.fixedMembers=d.fixedMembers||{};
+  S.sessions=Array.isArray(d.sessions)?d.sessions:[];
   // 기존 ㄱㄴㄷ 코드를 숫자로 마이그레이션
   const oldCodes=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'];
   if(S.staff.length&&oldCodes.includes(S.staff[0].code)){
@@ -1099,57 +1523,90 @@ function applyState(d){
 function getSaveSlots(){try{return JSON.parse(localStorage.getItem(LS_SLOTS)||'[]');}catch(e){return[];}}
 function setSaveSlots(arr){try{localStorage.setItem(LS_SLOTS,JSON.stringify(arr));}catch(e){}}
 
-function quickSave(){
-  const now=new Date();
-  const name=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const slots=getSaveSlots();
-  slots.unshift({name,date:now.toISOString(),data:getSerializableState()});
-  setSaveSlots(slots);renderSaveList();toast('💾',`저장 완료`);
+function ymd(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function todayStr(){return ymd(new Date());}
+function normalizeSlotsInPlace(arr){arr.forEach(s=>{if(!s.id)s.id=uid();if(!s.savedAt)s.savedAt=s.date||new Date().toISOString();if(!s.eventDate){const d=new Date(s.savedAt);s.eventDate=isNaN(d.getTime())?todayStr():ymd(d);}});return arr;}
+function getSlots(){const arr=getSaveSlots();const before=JSON.stringify(arr);normalizeSlotsInPlace(arr);if(JSON.stringify(arr)!==before)setSaveSlots(arr);return arr;}
+function slotsByDateDesc(){return getSlots().slice().sort((a,b)=>(b.eventDate||'').localeCompare(a.eventDate||'')||(b.savedAt||'').localeCompare(a.savedAt||''));}
+
+function openSaveModal(){
+  const dt=document.getElementById('saveDate');if(dt&&!dt.value)dt.value=todayStr();
+  document.getElementById('saveModal').classList.remove('hidden');
+  const cs=document.getElementById('cloudStatus');if(cs)cs.textContent='서버 동기화 확인 중…';
+  renderSaveList();refreshSaveSelect();
+  cloudPullSlots().then(ok=>{if(cs)cs.textContent=ok?'☁ 서버에 자동 저장됩니다 · 다른 기기에서도 불러올 수 있어요':'⚠ 서버 연결 안 됨 — 이 기기에만 저장됩니다';renderSaveList();refreshSaveSelect();});
 }
+function closeSaveModal(){document.getElementById('saveModal').classList.add('hidden');}
+
 function saveSlot(){
-  const nameEl=document.getElementById('saveName');
-  let name=(nameEl.value||'').trim();
-  if(!name){const now=new Date();name=`${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;}
-  const slots=getSaveSlots();
-  const existing=slots.findIndex(s=>s.name===name);
-  if(existing>=0){if(!confirm(`"${name}" 덮어쓸까요?`))return;slots[existing]={name,date:new Date().toISOString(),data:getSerializableState()};}
-  else{slots.unshift({name,date:new Date().toISOString(),data:getSerializableState()});}
-  setSaveSlots(slots);nameEl.value='';renderSaveList();toast('💾',`"${name}" 저장`);
+  const nameEl=document.getElementById('saveName');const dtEl=document.getElementById('saveDate');
+  const eventDate=(dtEl&&dtEl.value)||todayStr();
+  let name=(nameEl&&nameEl.value||'').trim();if(!name)name=eventDate;
+  const slots=getSlots();
+  const idx=slots.findIndex(s=>s.name===name&&s.eventDate===eventDate);
+  const entry={id:idx>=0?slots[idx].id:uid(),name,eventDate,savedAt:new Date().toISOString(),data:getSerializableState()};
+  if(idx>=0){if(!confirm(`같은 날짜의 "${name}" 저장본을 덮어쓸까요?`))return;slots[idx]=entry;}
+  else slots.unshift(entry);
+  setSaveSlots(slots);if(nameEl)nameEl.value='';
+  renderSaveList();refreshSaveSelect();cloudPush();toast('💾',`"${name}" 저장`);
 }
-function loadSlot(idx){
-  const slots=getSaveSlots();if(!slots[idx])return;
-  if(!confirm(`"${slots[idx].name}" 불러올까요?`))return;
-  autoSave();applyState(slots[idx].data);autoSave();toast('📂','불러오기 완료');
+function loadSlot(id){
+  const sl=getSlots().find(s=>s.id===id);if(!sl)return;
+  if(!confirm(`"${sl.name}" (${sl.eventDate}) 을(를) 불러올까요?\n현재 화면은 이 저장본으로 교체됩니다.`))return;
+  autoSave();applyState(sl.data);autoSave();closeSaveModal();toast('📂','불러오기 완료');
 }
-function deleteSlot(idx){
-  const slots=getSaveSlots();if(!slots[idx])return;
-  if(!confirm(`삭제할까요?`))return;
-  slots.splice(idx,1);setSaveSlots(slots);renderSaveList();toast('🗑️','삭제');
+function loadSelectedSave(id){if(id)loadSlot(id);const sel=document.getElementById('saveSelect');if(sel)sel.value='';}
+function deleteSlot(id){
+  const slots=getSlots();const i=slots.findIndex(s=>s.id===id);if(i<0)return;
+  if(!confirm(`"${slots[i].name}" 저장본을 삭제할까요?`))return;
+  slots.splice(i,1);setSaveSlots(slots);renderSaveList();refreshSaveSelect();cloudPush();toast('🗑️','삭제');
 }
-function renameSlot(idx){
-  const slots=getSaveSlots();if(!slots[idx])return;
-  const n=prompt('새 이름:',slots[idx].name);if(!n?.trim())return;
-  slots[idx].name=n.trim();setSaveSlots(slots);renderSaveList();
+function renameSlot(id){
+  const slots=getSlots();const s=slots.find(x=>x.id===id);if(!s)return;
+  const n=prompt('새 이름:',s.name);if(!n||!n.trim())return;
+  s.name=n.trim();setSaveSlots(slots);renderSaveList();refreshSaveSelect();cloudPush();
+}
+function refreshSaveSelect(){
+  const sel=document.getElementById('saveSelect');if(!sel)return;
+  const slots=slotsByDateDesc();let h='<option value="">📂 저장본 선택…</option>';let cur=null;
+  slots.forEach(s=>{if(s.eventDate!==cur){if(cur!==null)h+='</optgroup>';h+=`<optgroup label="📅 ${s.eventDate}">`;cur=s.eventDate;}h+=`<option value="${s.id}">${esc(s.name)}</option>`;});
+  if(cur!==null)h+='</optgroup>';
+  sel.innerHTML=h;
 }
 function renderSaveList(){
-  const slots=getSaveSlots();const w=document.getElementById('saveList');
+  const w=document.getElementById('saveList');if(!w)return;
+  const slots=slotsByDateDesc();
   const cnt=document.getElementById('saveCount');if(cnt)cnt.textContent=`${slots.length}개`;
-  if(!slots.length){w.innerHTML='<p class="text-center text-[#94a3b8] py-4 text-sm">저장된 스케줄이 없습니다.</p>';return;}
-  let h='';
-  slots.forEach((sl,i)=>{
-    const d=new Date(sl.date);
-    const ds=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    const sn=sl.data?.staff?.length||0;const mn=sl.data?.nameMap?Object.values(sl.data.nameMap).filter(v=>v).length:0;
-    h+=`<div class="card-s p-3 mb-1.5 flex items-center justify-between flex-wrap gap-2">
-      <div><div class="text-sm font-bold text-[#1e3a5f]">${sl.name}</div>
-        <div class="text-[10px] text-[#94a3b8]">${ds} · ${sn}명 · 매핑 ${mn}/${sn}</div></div>
+  if(!slots.length){w.innerHTML='<p class="text-center text-[#94a3b8] py-4 text-sm">저장된 항목이 없습니다.</p>';return;}
+  let h='',cur=null;
+  slots.forEach(s=>{
+    if(s.eventDate!==cur){h+=`<div class="date-group-label">📅 ${s.eventDate}</div>`;cur=s.eventDate;}
+    const sn=s.data&&s.data.staff?s.data.staff.length:0;
+    const mn=s.data&&s.data.nameMap?Object.values(s.data.nameMap).filter(v=>v).length:0;
+    const ns=s.data&&s.data.sessions?s.data.sessions.length:0;
+    const t=new Date(s.savedAt);const ts=isNaN(t.getTime())?'':`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')} 저장`;
+    h+=`<div class="save-row">
+      <div><div class="text-sm font-bold text-[#1e3a5f]">${esc(s.name)}</div>
+        <div class="text-[10px] text-[#94a3b8]">${ts} · ${sn}명${mn?` · 이름 ${mn}`:''}${ns?` · ${ns}회차`:''}</div></div>
       <div class="flex gap-1">
-        <button onclick="loadSlot(${i})" class="btn btn-p text-xs py-1.5 px-3">📂 불러오기</button>
-        <button onclick="renameSlot(${i})" class="btn btn-w text-xs py-1.5 px-3">✏️ 이름변경</button>
-        <button onclick="deleteSlot(${i})" class="btn btn-d text-xs py-1.5 px-3">🗑️ 삭제</button>
+        <button onclick="loadSlot('${s.id}')" class="icon-btn p" style="padding:7px 12px;font-size:12px">📂 불러오기</button>
+        <button onclick="renameSlot('${s.id}')" class="icon-btn" style="padding:7px 10px;font-size:12px">✏️</button>
+        <button onclick="deleteSlot('${s.id}')" class="icon-btn" style="padding:7px 10px;font-size:12px;color:#dc2626">🗑️</button>
       </div></div>`;
   });
   w.innerHTML=h;
+}
+async function cloudPullSlots(){
+  try{
+    const res=await fetch('/api/data');if(!res.ok)return false;
+    const data=await res.json();
+    if(data&&Array.isArray(data.slots)&&data.slots.length){
+      const ex=getSlots();const ids=new Set(ex.map(s=>s.id));const keys=new Set(ex.map(s=>s.name+'|'+s.eventDate));let add=0;
+      normalizeSlotsInPlace(data.slots).forEach(sl=>{if(!ids.has(sl.id)&&!keys.has(sl.name+'|'+sl.eventDate)){ex.push(sl);add++;}});
+      if(add)setSaveSlots(ex);
+    }
+    return true;
+  }catch(e){return false;}
 }
 
 // ===== AUTO CLOUD =====
@@ -1167,11 +1624,11 @@ async function cloudPull(){
     if(!data.v||!data.current)return false;
     applyState(data.current);autoSave();
     if(data.slots?.length){
-      const existing=getSaveSlots();const names=new Set(existing.map(s=>s.name));
-      data.slots.forEach(sl=>{if(!names.has(sl.name))existing.unshift(sl);});
+      const existing=getSlots();const keys=new Set(existing.map(s=>s.name+'|'+s.eventDate));
+      normalizeSlotsInPlace(data.slots).forEach(sl=>{if(!keys.has(sl.name+'|'+sl.eventDate))existing.unshift(sl);});
       setSaveSlots(existing);
     }
-    renderSaveList();return true;
+    renderSaveList();refreshSaveSelect();return true;
   }catch(e){return false;}
 }
 function schedulePush(){clearTimeout(_pushTimer);_pushTimer=setTimeout(()=>cloudPush(),2000);}
