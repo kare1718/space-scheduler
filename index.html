@@ -632,24 +632,40 @@ function bindInputs(){
   u();
 }
 
-function timeSlots(){const a=[];for(let h=S.openH;h<S.closeH;h++){const dh=h>=24?h-24:h;a.push(`${String(dh).padStart(2,'0')}:00`);}return a;}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=b;b=a%b;a=t;}return a||1;}
+function fmtMin(m){m=((Math.round(m)%1440)+1440)%1440;const h=Math.floor(m/60),mm=m%60;return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;}
+// 균등 휴게가 떨어지는 최적 블록 수 계산: 여유인원(spare)×블록수 가 인원(N)으로 나눠떨어져야 전원 동일 휴게
+function planBlocks(){
+  const totalMin=(S.closeH-S.openH)*60;
+  const N=S.staff.length||+(document.getElementById('inpStaffCount')||{}).value||0;
+  const minWorking=Math.max(S.zones.reduce((s,z)=>s+(z.min||0),0), S.fixedCount||0);
+  const spare=Math.max(0,N-minWorking);
+  if(totalMin<=0||N<=0) return {count:0,durMin:0,spare:0,restBlocks:0,minWorking,N,totalMin};
+  if(spare<=0){ const c=Math.max(1,Math.round(totalMin/60)); return {count:c,durMin:totalMin/c,spare:0,restBlocks:0,minWorking,N,totalMin}; }
+  const base=N/gcd(spare,N);               // 균등 휴게 최소 블록 수 (이 배수마다 정수 휴게)
+  let count=base,bestScore=Infinity;
+  for(let k=1;k<=24;k++){ const nb=base*k; const dur=totalMin/nb; if(dur<40||dur>150)continue; const score=Math.abs(dur-90); if(score<bestScore){bestScore=score;count=nb;} }
+  const durMin=totalMin/count;
+  const restBlocks=Math.round(spare*count/N);  // 각자 쉬는 블록 수(정수)
+  return {count,durMin,spare,restBlocks,minWorking,N,totalMin};
+}
+function timeSlots(){
+  const p=planBlocks(); if(!p.count)return [];
+  const a=[],start=S.openH*60;
+  for(let i=0;i<p.count;i++){ a.push(`${fmtMin(start+p.durMin*i)}-${fmtMin(start+p.durMin*(i+1))}`); }
+  return a;
+}
 function fmtHour(h){const dh=h>=24?h-24:h;return `${String(dh).padStart(2,'0')}:00`;}
 
 function calcRestRec(){
-  const totalH=S.closeH-S.openH;
-  const N=S.staff.length||+document.getElementById('inpStaffCount').value;
-  const spare=N-S.fixedCount;
-  const unit=S.restUnit||60;
-  const legalMin=Math.floor(totalH/4)*30;
-  const maxRestMin=spare>0?Math.floor((spare*totalH)/N)*60:0;
-  let rec=Math.max(legalMin,Math.floor(maxRestMin/5)*5);
-  rec=Math.max(unit,Math.round(rec/unit)*unit);   // 휴게 단위(슬롯) 배수로 맞춤 → '개인 휴게' 오판 방지
+  const p=planBlocks();
+  const evenRest=Math.round(p.restBlocks*p.durMin);   // 전원 동일 휴게(분)
   const el=document.getElementById('restRecText');
   if(el){
-    if(spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음</span>`;
-    else el.innerHTML=`1인당 최대 <b>${rec}분</b> (휴게 단위 ${unit}분, 여유 ${spare}명)`;
+    if(p.spare<=0) el.innerHTML=`<span class="text-red-600">여유 인력 없음 (상시 ${p.minWorking}명 ≥ 총원 ${p.N}명) — 휴게 배정 불가</span>`;
+    else el.innerHTML=`전원 균등 휴게 <b>${evenRest}분</b> = ${Math.round(p.durMin)}분 블록 ${p.count}개 중 <b>${p.restBlocks}회</b> 휴게 (여유 ${p.spare}명, 동시 휴게 ${p.spare}명)`;
   }
-  // 추천값만 표시, 사용자 설정은 건드리지 않음 (일괄적용 버튼으로만 반영)
+  // 블록 길이·휴게는 인원/상시/운영시간에서 자동 산출(전원 동일). 수동 휴게값은 참고용.
 }
 
 function applyGlobalRest(){
@@ -847,6 +863,7 @@ function renderMapStatus(){
 function genSchedule(){
   const ts=timeSlots();const T=ts.length;
   if(T<2){toast('⚠️','운영시간 부족');return;}
+  const _plan=planBlocks();const evenBlocks=Math.max(0,_plan.restBlocks||0);  // 전원 동일 휴게 블록 수
   const all=S.staff.map(s=>s.code);const N=all.length;
   const totalMinReq=S.zones.reduce((s,z)=>s+z.min,0);
   const minWorking=Math.max(totalMinReq,S.fixedCount);
@@ -863,15 +880,14 @@ function genSchedule(){
       let restThisSlot=0;
       while(restThisSlot<maxRestPerSlot&&cursor<order.length){
         const code=order[cursor%N];
-        const st=S.staff.find(s=>s.code===code);
-        const blocks=Math.round((st?.restMin||0)/S.restUnit);
-        if(restPlan[code].length<blocks){restPlan[code].push(si);slotLoad[si]++;restThisSlot++;}
+        const blocks=evenBlocks; // 전원 동일 휴게 블록 수
+        if(restPlan[code].length<blocks&&!restPlan[code].includes(si)){restPlan[code].push(si);slotLoad[si]++;restThisSlot++;}
         cursor++;if(cursor>=N*T)break;
       }
     }
   }else if(S.restMode==='push'){
     const dayOffset=new Date().getDate()%N;
-    const needs={};all.forEach(c=>{const st=S.staff.find(s=>s.code===c);needs[c]=Math.round((st?.restMin||0)/S.restUnit);});
+    const needs={};all.forEach(c=>{needs[c]=evenBlocks;}); // 전원 동일 휴게 블록 수
     const order=[];for(let i=0;i<N;i++)order.push(all[(i+dayOffset)%N]);
     const groups=[];for(let i=0;i<N;i+=maxRestPerSlot)groups.push(order.slice(i,i+maxRestPerSlot));
     let gi=0;
@@ -889,49 +905,19 @@ function genSchedule(){
       restPlan[code].sort((a,b)=>a-b);
     }
   }else{
-    // smart (AI 균등 분산) - 휴게를 운영시간에 골고루 배치
-    const staffByNeed=[...S.staff].map(st=>({code:st.code,blocks:Math.round(st.restMin/S.restUnit)}))
-      .filter(s=>s.blocks>0).sort((a,b)=>b.blocks-a.blocks);
-    for(const{code,blocks}of staffByNeed){
-      if(blocks>=T){toast('⚠️',`${code}번 휴게>운영시간`);return;}
-      // 이상적 위치 계산: 운영시간을 (blocks+1) 구간으로 나눠 균등 배치
-      const idealSlots=[];
-      const gap=T/(blocks+1);
-      for(let b=0;b<blocks;b++){
-        idealSlots.push(Math.round(gap*(b+1))-1);
+    // smart = 균등 분배: 각 블록 maxRestPerSlot명이 쉬고 전원이 정확히 evenBlocks회 휴게
+    // (라운드로빈으로 블록마다 다른 인원이 쉬도록 순환 → 한쪽에 몰리지 않음)
+    const off=N?(new Date().getDate()%N):0;
+    const order=all.map((_,i)=>all[(i+off)%N]);
+    let ptr=0;
+    for(let si=0;si<T&&evenBlocks>0&&maxRestPerSlot>0;si++){
+      let placed=0,guard=0;
+      while(placed<maxRestPerSlot&&guard<order.length*3){
+        const code=order[ptr%order.length];ptr++;guard++;
+        if(restPlan[code].length<evenBlocks&&!restPlan[code].includes(si)){restPlan[code].push(si);slotLoad[si]++;placed++;}
       }
-      const assigned=[];
-      // 이상적 위치에 가까운 슬롯부터 배정 (슬롯 부하 고려)
-      for(const ideal of idealSlots){
-        let best=-1,bestDist=Infinity;
-        // 이상적 위치 기준 ±범위에서 최적 슬롯 탐색
-        for(let i=0;i<T;i++){
-          if(assigned.includes(i))continue;
-          if(slotLoad[i]>=maxRestPerSlot)continue;
-          if(N-(slotLoad[i]+1)<minWorking)continue;
-          const dist=Math.abs(i-ideal);
-          // 이전 휴게와 너무 붙지 않도록 (최소 2슬롯 간격 선호)
-          const tooClose=assigned.some(a=>Math.abs(a-i)<=1);
-          const adjScore=dist*3+(tooClose?20:0)+slotLoad[i]*2;
-          if(adjScore<bestDist){bestDist=adjScore;best=i;}
-        }
-        if(best>=0){assigned.push(best);slotLoad[best]++;}
-      }
-      // 부족분 보충
-      while(assigned.length<blocks){
-        let best=-1,bestLoad=Infinity;
-        for(let i=0;i<T;i++){
-          if(assigned.includes(i))continue;
-          if(slotLoad[i]<maxRestPerSlot&&slotLoad[i]<bestLoad){
-            const tooClose=assigned.some(a=>Math.abs(a-i)<=1);
-            if(!tooClose||bestLoad===Infinity){bestLoad=slotLoad[i];best=i;}
-          }
-        }
-        if(best<0)break;
-        assigned.push(best);slotLoad[best]++;
-      }
-      restPlan[code]=assigned.sort((a,b)=>a-b);
     }
+    all.forEach(c=>restPlan[c].sort((a,b)=>a-b));
   }
 
   // ===== 2단계: 사전 구역 배정 (각 인원이 속할 구역을 먼저 결정) =====
@@ -1202,11 +1188,13 @@ function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
 
 function renderSummary(){
   const w=document.getElementById('summaryWrap');if(!w||!S.sch)return;
+  const _sp=planBlocks();const _bd=Math.round(_sp.durMin||0); // 블록당 분
+  const _hm=m=>{const hh=Math.floor(m/60),mm=m%60;return hh?`${hh}h${mm?mm+'분':''}`:`${mm}분`;};
   let h=`<h4 class="text-xs font-bold text-[#1e3a5f] mb-2">📊 요약</h4><div class="grid grid-cols-2 gap-1.5">`;
   S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const zc=getCodeZoneCount(s.code);const col=CL[i%CL.length];const overMax=zc>S.maxParts;
     h+=`<div class="p-1.5 rounded-lg bg-white border text-[10px] flex items-center justify-between" style="border-color:${overMax?'#dc2626':col+'30'}${overMax?';background:#fef2f2':''}">
       <span class="font-bold" style="color:${col}" data-dn="${s.code}">${dn(s.code)}</span>
-      <span class="text-right" style="color:${overMax?'#dc2626':'#64748b'}">${wc}h 휴${rc*S.restUnit}분 <b>${zc}구역</b>${overMax?' ⚠️':''}</span></div>`;});
+      <span class="text-right" style="color:${overMax?'#dc2626':'#64748b'}">근무${_hm(wc*_bd)} 휴${rc*_bd}분 <b>${zc}구역</b>${overMax?' ⚠️':''}</span></div>`;});
   h+=`</div>`;
   w.innerHTML=h;
 }
@@ -1479,8 +1467,9 @@ function validateRules(){
   // 상시 인원 체크
   const r1fail=S.sch.filter(sl=>Object.values(sl.pa).flat().length<S.fixedCount);
   const r1={name:'상시 인원',ok:!r1fail.length,reason:r1fail.length?`${r1fail[0].time} 등 ${r1fail.length}개 시간대 미달`:''};
-  // 개인 휴게
-  const r2fail=S.staff.filter(s=>{const need=Math.round((s.restMin||0)/S.restUnit);const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc!==need;});
+  // 개인 휴게 — 전원이 동일한 휴게 블록 수(planBlocks)를 채워야 함
+  const _vplan=planBlocks();const _rbNeed=Math.max(0,_vplan.restBlocks||0);const _durM=Math.round(_vplan.durMin||0);
+  const r2fail=S.staff.filter(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc!==_rbNeed;});
   const r2={name:'개인 휴게',ok:!r2fail.length,reason:r2fail.length?`${r2fail.map(s=>dn(s.code)).slice(0,3).join(',')} 등 ${r2fail.length}명 미충족`:''};
   // 연속 휴게
   const r3fail=S.staff.filter(s=>{let c=0;for(const sl of S.sch){if(sl.rest.includes(s.code)){c++;if(c>=3)return true;}else c=0;}return false;});
@@ -1509,7 +1498,7 @@ function validateRules(){
     analysis.push(`⚠️ <b>상시 인원 미달:</b> ${worst.time} 시간대에 근무 인원이 ${wCount}명으로 상시 최소 ${S.fixedCount}명에 ${S.fixedCount-wCount}명 부족합니다. 총원을 늘리거나 1인 휴게 시간을 줄여 동시 휴게 인원을 낮추세요.`);
   }
   if(!r2.ok){
-    const names=r2fail.slice(0,2).map(s=>{const need=Math.round((s.restMin||0)/S.restUnit);const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dn(s.code)}(${rc*S.restUnit}/${need*S.restUnit}분)`;}).join(', ');
+    const names=r2fail.slice(0,2).map(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dn(s.code)}(${rc*_durM}/${_rbNeed*_durM}분)`;}).join(', ');
     analysis.push(`⚠️ <b>개인 휴게 미충족:</b> ${names} 등이 설정된 휴게시간을 채우지 못했습니다. 운영시간 대비 인원이 부족하여 휴게 배정 여유가 없습니다. 총원을 늘리거나 휴게시간을 줄여보세요.`);
   }
   if(!r3.ok){
