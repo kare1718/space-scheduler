@@ -345,6 +345,13 @@ body{font-size:13px}
   </div>
 </header>
 
+<div class="max-w-[1200px] mx-auto px-3 pt-3 -mb-1">
+  <div class="card-s flex items-center gap-2 flex-wrap" style="padding:8px 12px">
+    <span class="text-[11px] font-bold text-[#94a3b8]" style="letter-spacing:.3px">📂 현재 저장본</span>
+    <span id="currentSaveLabel" class="text-sm font-bold text-[#94a3b8]">아직 저장 안 됨 — 💾 저장으로 제목·날짜를 지정하세요</span>
+  </div>
+</div>
+
 <main class="max-w-[1200px] mx-auto p-3">
 
 <!-- ======================== TAB: 메인 (설정+스케줄+저장 통합) ======================== -->
@@ -575,6 +582,8 @@ let S={
   attend:{},
   sessions:[],
   fixedMembers:{},
+  curName:'',
+  curDate:'',
 };
 
 // ===== INIT =====
@@ -586,6 +595,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   bindInputs();
   refreshSaveSelect();
   refreshAttNamePanel();        // 이름 없으면 명단 펼침, 있으면 접힘
+  updateCurrentSaveLabel();
   _initDone=true;
   setInterval(periodicAutoSave,30000);     // 30초 자동 저장 + 동기화
   cloudSync().then(()=>refreshSaveSelect());                        // 시작 시 서버와 동기화(연결 시)
@@ -1949,7 +1959,8 @@ function getSerializableState(){
     maxParts:S.maxParts,fixedCount:S.fixedCount,restMode:S.restMode,
     zones:S.zones,coverZone:S.coverZone||'',pools:S.pools||[],staff:S.staff,nameMap:S.nameMap,
     nameEntries:S.nameEntries,nextNameId:S.nextNameId,sch:S.sch,attend:S.attend,
-    sessions:S.sessions||[],fixedMembers:S.fixedMembers||{}};
+    sessions:S.sessions||[],fixedMembers:S.fixedMembers||{},
+    curName:S.curName||'',curDate:S.curDate||''};
 }
 
 // ===== UNDO =====
@@ -1999,6 +2010,7 @@ function applyState(d){
   S.nameMap=d.nameMap||{};S.nameEntries=d.nameEntries||[];
   S.nextNameId=d.nextNameId||0;S.sch=d.sch||null;S.attend=d.attend||{};S.fixedMembers=d.fixedMembers||{};
   S.sessions=Array.isArray(d.sessions)?d.sessions:[];
+  S.curName=d.curName||'';S.curDate=d.curDate||'';
   // 기존 ㄱㄴㄷ 코드를 숫자로 마이그레이션
   const oldCodes=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'];
   if(S.staff.length&&oldCodes.includes(S.staff[0].code)){
@@ -2033,6 +2045,7 @@ function applyState(d){
     document.getElementById('exportWrap').style.display='';
     renderSchTable();renderNameBank();validateRules();
   }
+  updateCurrentSaveLabel();
   return true;
 }
 
@@ -2060,16 +2073,20 @@ function saveSlot(){
   let name=(nameEl&&nameEl.value||'').trim();if(!name)name=eventDate;
   const slots=getSlots();
   const idx=slots.findIndex(s=>s.name===name&&s.eventDate===eventDate);
+  if(idx>=0&&!confirm(`같은 날짜의 "${name}" 저장본을 덮어쓸까요?`))return;
+  S.curName=name;S.curDate=eventDate;
   const entry={id:idx>=0?slots[idx].id:uid(),name,eventDate,savedAt:new Date().toISOString(),data:getSerializableState()};
-  if(idx>=0){if(!confirm(`같은 날짜의 "${name}" 저장본을 덮어쓸까요?`))return;slots[idx]=entry;}
-  else slots.unshift(entry);
+  if(idx>=0)slots[idx]=entry;else slots.unshift(entry);
   setSaveSlots(slots);if(nameEl)nameEl.value='';
+  try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}
+  updateCurrentSaveLabel();
   renderSaveList();refreshSaveSelect();cloudPush();toast('💾',`"${name}" 저장`);
 }
 function loadSlot(id){
   const sl=getSlots().find(s=>s.id===id);if(!sl)return;
   if(!confirm(`"${sl.name}" (${sl.eventDate}) 을(를) 불러올까요?\n현재 화면은 이 저장본으로 교체됩니다.`))return;
-  autoSave();applyState(sl.data);autoSave();closeSaveModal();toast('📂','불러오기 완료');
+  autoSave();applyState(sl.data);S.curName=sl.name;S.curDate=sl.eventDate;autoSave();
+  updateCurrentSaveLabel();closeSaveModal();toast('📂',`"${sl.name}" 불러옴`);
 }
 function loadSelectedSave(id){if(id)loadSlot(id);const sel=document.getElementById('saveSelect');if(sel)sel.value='';}
 function deleteSlot(id){
@@ -2080,7 +2097,19 @@ function deleteSlot(id){
 function renameSlot(id){
   const slots=getSlots();const s=slots.find(x=>x.id===id);if(!s)return;
   const n=prompt('새 이름:',s.name);if(!n||!n.trim())return;
-  s.name=n.trim();setSaveSlots(slots);renderSaveList();refreshSaveSelect();cloudPush();
+  const old=s.name;s.name=n.trim();setSaveSlots(slots);
+  if(S.curName===old&&S.curDate===s.eventDate){S.curName=s.name;try{localStorage.setItem(LS_AUTO,JSON.stringify(getSerializableState()));}catch(e){}updateCurrentSaveLabel();}
+  renderSaveList();refreshSaveSelect();cloudPush();
+}
+function updateCurrentSaveLabel(){
+  const el=document.getElementById('currentSaveLabel');if(!el)return;
+  if(S.curName||S.curDate){
+    el.textContent=`${S.curName||S.curDate}${S.curDate?` · 📅 ${S.curDate}`:''}`;
+    el.classList.remove('text-[#94a3b8]');el.classList.add('text-[#1e3a5f]');
+  }else{
+    el.textContent='아직 저장 안 됨 — 💾 저장으로 제목·날짜를 지정하세요';
+    el.classList.remove('text-[#1e3a5f]');el.classList.add('text-[#94a3b8]');
+  }
 }
 function refreshSaveSelect(){
   const sel=document.getElementById('saveSelect');if(!sel)return;
