@@ -623,8 +623,9 @@ function bindTabs(){
   });
 }
 
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function dn(code){return S.nameMap[code]||code;}
+function dnE(code){return esc(S.nameMap[code]||code);} // 안전한 이름 표시(innerHTML 컨텍스트)
 function getPosition(code){
   if(!S.sch||!S.sch.length)return code+'번';
   const zones=new Set();
@@ -747,7 +748,7 @@ async function aiGenerate(){
     if(st){
       if(m==='NEED_KEY'){ st.innerHTML='<span class="text-red-600">API 키가 필요합니다. 위 \"AI 키 설정\"을 열어 키를 붙여넣어 주세요.</span>'; openAIKeyHelp(); }
       else if(m==='NO_SERVER'){ st.innerHTML='<span class="text-red-600">AI 기능은 서버 주소(onrender.com)에서만 작동합니다. 그 주소로 접속해 주세요.</span>'; }
-      else st.innerHTML='<span class="text-red-600">AI 오류: '+m+'</span>';
+      else st.innerHTML='<span class="text-red-600">AI 오류: '+esc(m)+'</span>';
     }
     toast('⚠️','AI 생성 실패');
   }finally{ if(btn){btn.disabled=false;btn.innerHTML=old;} }
@@ -798,20 +799,20 @@ function renderAIInterpretation(cfg){
   if(Array.isArray(S.pools)&&S.pools.length){
     partsLine=S.pools.map(pl=>{
       const zs=S.zones.filter(z=>z.pool===pl.name);
-      const mins=zs.map(z=>`${z.name} ${z.min}`).join('+');
-      return `<b>${pl.name}</b> ${pl.size}명(상시 ${mins})`;
+      const mins=zs.map(z=>`${esc(z.name)} ${z.min}`).join('+');
+      return `<b>${esc(pl.name)}</b> ${pl.size}명(상시 ${mins})`;
     }).join(' · ');
   }else{
-    partsLine=(S.zones||[]).map(z=>`${z.name} 상시 ${z.min}`).join(' · ');
+    partsLine=(S.zones||[]).map(z=>`${esc(z.name)} 상시 ${z.min}`).join(' · ');
   }
   const restLine=p.spare>0
     ? `${Math.round(p.durMin)}분 블록 ${p.count}개 · 전원 ${p.restBlocks}회 휴게(${Math.round(p.restBlocks*p.durMin)}분)`
     : `여유 인력이 없어 휴게 배정 불가 (상시 ${p.minWorking} ≥ 총원 ${p.N})`;
   return `<div class="leading-5 p-2 rounded-lg bg-white/70 border border-indigo-100">
     <b>✅ AI 해석</b> — 운영 ${S.openH}:00~${S.closeH}:00 · 총원 ${S.staff.length}명 · 상시 ${S.fixedCount}명 · 최대 ${S.maxParts}파트<br>
-    ${partsLine||'-'}${S.coverZone?`<br>🛟 <b style="color:#4338ca">${S.coverZone}</b>가 부족 파트 커버`:''}<br>
+    ${partsLine||'-'}${S.coverZone?`<br>🛟 <b style="color:#4338ca">${esc(S.coverZone)}</b>가 부족 파트 커버`:''}<br>
     휴게: ${restLine}
-    ${cfg.notes?`<br><span class="text-[#64748b]">📝 ${cfg.notes}</span>`:''}
+    ${cfg&&cfg.notes?`<br><span class="text-[#64748b]">📝 ${esc(cfg.notes)}</span>`:''}
     <br><span class="text-[#94a3b8] text-[10px]">표가 마음에 안 들면 아래 설정값을 직접 고치고 🤖 자동 생성을 눌러도 됩니다.</span>
   </div>`;
 }
@@ -823,7 +824,7 @@ function renderZones(){
     if(z.fixed===undefined)z.fixed=0;
     w.innerHTML+=`<div class="flex items-center gap-1.5 card-s p-2">
       <span class="w-4 h-4 rounded-full flex-shrink-0" style="background:${z.color}"></span>
-      <input class="inp text-sm py-1" lang="ko" style="flex:1" value="${z.name}" onchange="S.zones[${i}].name=this.value">
+      <input class="inp text-sm py-1" lang="ko" style="flex:1" value="${esc(z.name||'')}" onchange="S.zones[${i}].name=this.value">
       <input type="number" class="inp text-xs text-center py-1" style="width:45px" value="${z.min}" min="0" onchange="S.zones[${i}].min=+this.value;if(S.zones[${i}].fixed>+this.value)S.zones[${i}].fixed=+this.value;renderZones();" title="최소 인원">
       <input type="number" class="inp text-xs text-center py-1" style="width:40px;background:${z.fixed>0?'#fef3c7':'#f8fafc'}" value="${z.fixed}" min="0" max="${z.min}" onchange="S.zones[${i}].fixed=Math.min(+this.value,S.zones[${i}].min);renderZones();autoSave();" title="🔒 교대 안하는 고정 자리">
       <input type="color" value="${z.color}" class="w-6 h-6 rounded cursor-pointer border-0 flex-shrink-0" onchange="S.zones[${i}].color=this.value;renderZones()">
@@ -924,8 +925,8 @@ function renderNameInputs(){
   const w=document.getElementById('nameInputs');if(!w)return;w.innerHTML='';
   S.nameEntries.forEach(e=>{
     w.innerHTML+=`<div class="flex items-center gap-1">
-      <input type="text" class="inp text-sm py-1.5 text-center" style="width:90px" placeholder="이름" value="${e.name}" lang="ko" oninput="updateNameEntry(${e.id},this.value)">
-      <button onclick="removeNameEntry(${e.id})" class="text-red-400 hover:text-red-600 text-sm px-1">✕</button></div>`;
+      <input type="text" class="inp text-sm py-1.5 text-center" style="width:90px" placeholder="이름" value="${esc(e.name||'')}" lang="ko" oninput="updateNameEntry(${+e.id||0},this.value)">
+      <button onclick="removeNameEntry(${+e.id||0})" class="text-red-400 hover:text-red-600 text-sm px-1">✕</button></div>`;
   });
 }
 function renderNameChips(){
@@ -943,11 +944,12 @@ function renderNameChips(){
     const pastel=PASTEL[i%PASTEL.length];
     if(used){
       const pos=getPosition(mappedCode);
-      assigned.push(`<div class="name-chip used" onclick="unmapName('${e.name}')" title="클릭하면 배치 해제"
-        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name} (${pos}) ✕</div>`);
+      // onclick 에는 이름을 직접 보간하지 않고 data-name 으로 안전하게 전달.
+      assigned.push(`<div class="name-chip used" data-name="${esc(e.name)}" onclick="unmapName(this.dataset.name)" title="클릭하면 배치 해제"
+        style="background:${pastel};color:${col};border:1px solid ${col}30">${esc(e.name)} (${esc(pos)}) ✕</div>`);
     }else{
-      unassigned.push(`<div class="name-chip" draggable="true" data-name="${e.name}"
-        style="background:${pastel};color:${col};border:1px solid ${col}30">${e.name}</div>`);
+      unassigned.push(`<div class="name-chip" draggable="true" data-name="${esc(e.name)}"
+        style="background:${pastel};color:${col};border:1px solid ${col}30">${esc(e.name)}</div>`);
     }
   });
   wU.innerHTML=unassigned.length?unassigned.join(''):'<span class="text-[11px] text-[#94a3b8]">없음</span>';
@@ -991,8 +993,8 @@ function renderMapStatus(){
   const total=S.staff.length;
   if(!S.sch){w.innerHTML='';return;}
   let h=`<b>${mapped.length}/${total}</b> 매핑 `;
-  if(mapped.length>0){h+=mapped.map(s=>`<span style="color:${codeColor(s.code)};font-weight:600">${s.code}→${S.nameMap[s.code]}</span>`).join(' · ');}
-  if(mapped.length<total){const um=S.staff.filter(s=>!S.nameMap[s.code]).map(s=>s.code);h+=` <span class="text-[#94a3b8]">| 미배정: ${um.join(', ')}</span>`;}
+  if(mapped.length>0){h+=mapped.map(s=>`<span style="color:${codeColor(s.code)};font-weight:600">${esc(s.code)}→${esc(S.nameMap[s.code]||'')}</span>`).join(' · ');}
+  if(mapped.length<total){const um=S.staff.filter(s=>!S.nameMap[s.code]).map(s=>esc(s.code));h+=` <span class="text-[#94a3b8]">| 미배정: ${um.join(', ')}</span>`;}
   w.innerHTML=h;
 }
 
@@ -1351,7 +1353,7 @@ function renderSchTable(){
   if(!S.sch)return;const w=document.getElementById('schOut');const zn=S.zones.map(z=>z.name);
   let h=`<table class="w-full border-collapse" id="schTable"><thead><tr>
     <th class="sch-cell text-center text-xs text-[#64748b] font-bold sticky left-0 bg-white z-10" style="min-width:90px">시간</th>`;
-  zn.forEach((n,i)=>{h+=`<th class="sch-cell text-xs font-bold" style="color:${S.zones[i].color}">${n}</th>`;});
+  zn.forEach((n,i)=>{h+=`<th class="sch-cell text-xs font-bold" style="color:${S.zones[i].color}">${esc(n)}</th>`;});
   h+=`<th class="sch-cell text-xs text-orange-600 font-bold">☕휴게</th>
     <th class="sch-cell text-xs text-emerald-600 font-bold">🤝지원</th></tr></thead><tbody>`;
 
@@ -1359,10 +1361,10 @@ function renderSchTable(){
     const nt=si<S.sch.length-1?S.sch[si+1].time:fmtHour(S.closeH);
     h+=`<tr><td class="sch-cell font-mono font-bold text-[#1e3a5f] sticky left-0 bg-white z-10 text-center" style="font-size:14px">${sl.time}~${nt}</td>`;
     zn.forEach(n=>{const codes=sl.pa[n]||[];
-      h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${n}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
+      h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="${esc(n)}">${codes.map(c=>makeTag(c,si,n)).join('')||dash()}</td>`;});
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__rest__">${sl.rest.map(c=>makeTag(c,si,'__rest__','#ffedd5','#9a3412')).join('')||dash()}</td>`;
     h+=`<td class="sch-cell sch-drop" data-si="${si}" data-col="__support__">${sl.support.map(c=>makeTag(c,si,'__support__','#d1fae5','#059669')).join('')}
-      <input type="text" class="inp text-[9px] py-0 mt-1" lang="ko" style="width:45px;padding:2px 3px" placeholder="메모" value="${sl.memo||''}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
+      <input type="text" class="inp text-[9px] py-0 mt-1" lang="ko" style="width:45px;padding:2px 3px" placeholder="메모" value="${esc(sl.memo||'')}" onchange="S.sch[${si}].memo=this.value;autoSave()"></td></tr>`;
   });
   h+=`</tbody></table>`;
   w.innerHTML=h;
@@ -1393,8 +1395,8 @@ function makeTag(code,si,from,bg,fg){
   }
   const warnStyle=overMax?';outline:2px solid #dc2626;outline-offset:-1px':'';
   const fixedIcon=isFixed&&S.fixedMembers[code]===from?'🔒':'';
-  return `<span class="sch-tag ${mapped?'mapped':'unmapped'}${overMax?' over-max':''}" draggable="true" data-code="${code}" data-si="${si}" data-from="${from}"
-    style="background:${bg};color:${fg}${!mapped?';border:1px dashed #e2e8f0!important':''}${warnStyle}" data-dn="${code}" title="${isFixed?'🔒 고정 자리':''}${overMax?' ⚠️ 최대파트 초과!':''}">${fixedIcon}${dn(code)}${overMax?' ⚠':''}</span>`;
+  return `<span class="sch-tag ${mapped?'mapped':'unmapped'}${overMax?' over-max':''}" draggable="true" data-code="${esc(code)}" data-si="${si}" data-from="${esc(from)}"
+    style="background:${bg};color:${fg}${!mapped?';border:1px dashed #e2e8f0!important':''}${warnStyle}" data-dn="${esc(code)}" title="${isFixed?'🔒 고정 자리':''}${overMax?' ⚠️ 최대파트 초과!':''}">${fixedIcon}${dnE(code)}${overMax?' ⚠':''}</span>`;
 }
 function dash(){return '<span class="text-gray-300 text-xs">-</span>';}
 
@@ -1405,7 +1407,7 @@ function renderSummary(){
   let h=`<h4 class="text-xs font-bold text-[#1e3a5f] mb-2">📊 요약</h4><div class="grid grid-cols-2 gap-1.5">`;
   S.staff.forEach((s,i)=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;const wc=S.sch.filter(sl=>Object.values(sl.pa).some(a=>a.includes(s.code))).length;const zc=getCodeZoneCount(s.code);const col=CL[i%CL.length];const overMax=zc>S.maxParts;
     h+=`<div class="p-1.5 rounded-lg bg-white border text-[10px] flex items-center justify-between" style="border-color:${overMax?'#dc2626':col+'30'}${overMax?';background:#fef2f2':''}">
-      <span class="font-bold" style="color:${col}" data-dn="${s.code}">${dn(s.code)}</span>
+      <span class="font-bold" style="color:${col}" data-dn="${esc(s.code)}">${dnE(s.code)}</span>
       <span class="text-right" style="color:${overMax?'#dc2626':'#64748b'}">근무${_hm(wc*_bd)} 휴${rc*_bd}분 <b>${zc}구역</b>${overMax?' ⚠️':''}</span></div>`;});
   h+=`</div>`;
   w.innerHTML=h;
@@ -1682,16 +1684,16 @@ function validateRules(){
   // 개인 휴게 — 전원이 동일한 휴게 블록 수(planBlocks)를 채워야 함
   const _vplan=planBlocks();const _rbNeed=Math.max(0,_vplan.restBlocks||0);const _durM=Math.round(_vplan.durMin||0);
   const r2fail=S.staff.filter(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return rc!==_rbNeed;});
-  const r2={name:'개인 휴게',ok:!r2fail.length,reason:r2fail.length?`${r2fail.map(s=>dn(s.code)).slice(0,3).join(',')} 등 ${r2fail.length}명 미충족`:''};
+  const r2={name:'개인 휴게',ok:!r2fail.length,reason:r2fail.length?`${r2fail.map(s=>dnE(s.code)).slice(0,3).join(',')} 등 ${r2fail.length}명 미충족`:''};
   // 연속 휴게
   const r3fail=S.staff.filter(s=>{let c=0;for(const sl of S.sch){if(sl.rest.includes(s.code)){c++;if(c>=3)return true;}else c=0;}return false;});
-  const r3={name:'연속 휴게 방지',ok:!r3fail.length,reason:r3fail.length?`${r3fail.map(s=>dn(s.code)).join(',')} 3연속 휴게`:''};
+  const r3={name:'연속 휴게 방지',ok:!r3fail.length,reason:r3fail.length?`${r3fail.map(s=>dnE(s.code)).join(',')} 3연속 휴게`:''};
   // 근무/휴게 분리
   const r4fail=S.sch.filter(sl=>{const w=Object.values(sl.pa).flat();return w.some(n=>sl.rest.includes(n));});
   const r4={name:'근무/휴게 분리',ok:!r4fail.length,reason:r4fail.length?`${r4fail[0].time} 중복 배치`:''};
   // 최대 파트 수 체크
   const r5fail=S.staff.filter(s=>{const zones=new Set();S.sch.forEach(sl=>{for(const[zone,arr]of Object.entries(sl.pa)){if(arr.includes(s.code))zones.add(zone);}});return zones.size>S.maxParts;});
-  const r5={name:`최대 파트(${S.maxParts})`,ok:!r5fail.length,reason:r5fail.length?`${r5fail.map(s=>dn(s.code)).slice(0,3).join(',')} 등 ${r5fail.length}명 초과`:''};
+  const r5={name:`최대 파트(${S.maxParts})`,ok:!r5fail.length,reason:r5fail.length?`${r5fail.map(s=>dnE(s.code)).slice(0,3).join(',')} 등 ${r5fail.length}명 초과`:''};
   // 구역 최소인원 체크
   const r6fail=[];S.sch.forEach(sl=>{S.zones.forEach(z=>{if((sl.pa[z.name]||[]).length<z.min)r6fail.push({time:sl.time,zone:z.name,have:(sl.pa[z.name]||[]).length,need:z.min});});});
   const r6={name:'구역 최소인원',ok:!r6fail.length,reason:r6fail.length?`${r6fail[0].time} ${r6fail[0].zone} ${r6fail[0].have}/${r6fail[0].need}명`:''};
@@ -1710,17 +1712,17 @@ function validateRules(){
     analysis.push(`⚠️ <b>상시 인원 미달:</b> ${worst.time} 시간대에 근무 인원이 ${wCount}명으로 상시 최소 ${S.fixedCount}명에 ${S.fixedCount-wCount}명 부족합니다. 총원을 늘리거나 1인 휴게 시간을 줄여 동시 휴게 인원을 낮추세요.`);
   }
   if(!r2.ok){
-    const names=r2fail.slice(0,2).map(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dn(s.code)}(${rc*_durM}/${_rbNeed*_durM}분)`;}).join(', ');
+    const names=r2fail.slice(0,2).map(s=>{const rc=S.sch.filter(sl=>sl.rest.includes(s.code)).length;return `${dnE(s.code)}(${rc*_durM}/${_rbNeed*_durM}분)`;}).join(', ');
     analysis.push(`⚠️ <b>개인 휴게 미충족:</b> ${names} 등이 설정된 휴게시간을 채우지 못했습니다. 운영시간 대비 인원이 부족하여 휴게 배정 여유가 없습니다. 총원을 늘리거나 휴게시간을 줄여보세요.`);
   }
   if(!r3.ok){
-    analysis.push(`⚠️ <b>연속 휴게:</b> ${r3fail.map(s=>dn(s.code)).join(', ')}이 3시간 이상 연속 휴게입니다. 휴게 분산 모드를 'AI 분산'으로 변경하거나 휴게 단위를 조정하세요.`);
+    analysis.push(`⚠️ <b>연속 휴게:</b> ${r3fail.map(s=>dnE(s.code)).join(', ')}이 3시간 이상 연속 휴게입니다. 휴게 분산 모드를 'AI 분산'으로 변경하거나 휴게 단위를 조정하세요.`);
   }
   if(!r4.ok){
     analysis.push(`⚠️ <b>근무/휴게 충돌:</b> ${r4fail[0].time}에 같은 인원이 근무와 휴게에 동시 배정되었습니다. 자동 생성을 다시 실행하거나 해당 시간대에서 수동으로 인원을 이동하세요.`);
   }
   if(!r5.ok){
-    const detail=r5fail.slice(0,2).map(s=>{const zones=new Set();S.sch.forEach(sl=>{for(const[z,a]of Object.entries(sl.pa)){if(a.includes(s.code))zones.add(z);}});return `${dn(s.code)}(${[...zones].join('/')})`;}).join(', ');
+    const detail=r5fail.slice(0,2).map(s=>{const zones=new Set();S.sch.forEach(sl=>{for(const[z,a]of Object.entries(sl.pa)){if(a.includes(s.code))zones.add(z);}});return `${dnE(s.code)}(${[...zones].map(esc).join('/')})`;}).join(', ');
     analysis.push(`⚠️ <b>최대 파트 초과:</b> ${detail}이 ${S.maxParts}개 구역 제한을 초과했습니다. 자동생성을 다시 실행하거나 수동으로 구역을 조정하세요.`);
   }
   if(!r6.ok){
@@ -1920,7 +1922,7 @@ function renderAtt(){
   }
   people.forEach((s,ri)=>{
     h+='<tr>';
-    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in"><span class="xls-no" style="background:${codeColor(s.code)}">${s.code}</span><input class="xls-name-inp" value="${(S.nameMap[s.code]||'').replace(/"/g,'&quot;')}" placeholder="이름" lang="ko" oninput="setAttName('${s.code}',this.value)" onchange="commitAttName('${s.code}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${s.code}')" title="이 인원 삭제">✕</button></div></td>`;
+    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in"><span class="xls-no" style="background:${codeColor(s.code)}">${esc(s.code)}</span><input class="xls-name-inp" value="${esc(S.nameMap[s.code]||'')}" placeholder="이름" lang="ko" oninput="setAttName('${esc(s.code)}',this.value)" onchange="commitAttName('${esc(s.code)}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${esc(s.code)}')" title="이 인원 삭제">✕</button></div></td>`;
     sess.forEach(ss=>{
       const r=(ss.recs&&ss.recs[s.code])||{};const t=r.time||'';
       const lm=t?lateMin(t,ss.base):null;
@@ -1948,7 +1950,13 @@ function renderAtt(){
 }
 
 // ===== TOAST =====
-function toast(icon,msg){const t=document.getElementById('toast');t.innerHTML=`<div>${icon} ${msg}</div>`;t.className='show';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2500);}
+function toast(icon,msg){
+  const t=document.getElementById('toast');if(!t)return;
+  // msg는 호출부에서 ${dn(code)} 같은 사용자 입력을 포함할 수 있으므로 textContent 로 안전 출력.
+  // icon 은 항상 개발자 상수(이모지)라서 안전. 한 줄에 합치기 위해 div 안 텍스트로 처리.
+  const inner=t.firstElementChild||t;inner.textContent=String(icon||'')+' '+String(msg||'');
+  t.className='show';clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2500);
+}
 
 // ===== SAVE / LOAD =====
 const LS_AUTO='spaceSch_auto';
@@ -2114,7 +2122,7 @@ function updateCurrentSaveLabel(){
 function refreshSaveSelect(){
   const sel=document.getElementById('saveSelect');if(!sel)return;
   const slots=slotsByDateDesc();let h='<option value="">📂 저장본 선택…</option>';let cur=null;
-  slots.forEach(s=>{if(s.eventDate!==cur){if(cur!==null)h+='</optgroup>';h+=`<optgroup label="📅 ${s.eventDate}">`;cur=s.eventDate;}h+=`<option value="${s.id}">${esc(s.name)}</option>`;});
+  slots.forEach(s=>{if(s.eventDate!==cur){if(cur!==null)h+='</optgroup>';h+=`<optgroup label="📅 ${esc(s.eventDate||'')}">`;cur=s.eventDate;}h+=`<option value="${esc(s.id||'')}">${esc(s.name)}</option>`;});
   if(cur!==null)h+='</optgroup>';
   sel.innerHTML=h;
 }
@@ -2125,7 +2133,7 @@ function renderSaveList(){
   if(!slots.length){w.innerHTML='<p class="text-center text-[#94a3b8] py-4 text-sm">저장된 항목이 없습니다.</p>';return;}
   let h='',cur=null;
   slots.forEach(s=>{
-    if(s.eventDate!==cur){h+=`<div class="date-group-label">📅 ${s.eventDate}</div>`;cur=s.eventDate;}
+    if(s.eventDate!==cur){h+=`<div class="date-group-label">📅 ${esc(s.eventDate||'')}</div>`;cur=s.eventDate;}
     const sn=s.data&&s.data.staff?s.data.staff.length:0;
     const mn=s.data&&s.data.nameMap?Object.values(s.data.nameMap).filter(v=>v).length:0;
     const ns=s.data&&s.data.sessions?s.data.sessions.length:0;

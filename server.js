@@ -126,11 +126,28 @@ function aiExtractJSON(t){
   return JSON.parse(s);
 }
 
+// 간단한 IP별 토큰 버킷 — 분당 20회 한도(개인용 도구 보호)
+const _aiBuckets = new Map();
+function aiRateLimit(ip){
+  const now=Date.now(), w=60*1000, max=20;
+  let b=_aiBuckets.get(ip);
+  if(!b||now-b.start>=w){ b={start:now,n:0}; _aiBuckets.set(ip,b); }
+  // 메모리 누수 방지: 버킷이 200개 넘으면 가장 오래된 것 제거
+  if(_aiBuckets.size>200){const k=_aiBuckets.keys().next().value;if(k!==ip)_aiBuckets.delete(k);}
+  b.n++;
+  return b.n<=max;
+}
+
 app.post('/api/ai-schedule', async (req, res) => {
   try{
-    const text = ((req.body && req.body.text) || '').toString().trim();
+    const ip = (req.headers['x-forwarded-for']||req.ip||'').toString().split(',')[0].trim()||'_';
+    if(!aiRateLimit(ip)) return res.status(429).json({ ok:false, error:'요청이 너무 잦습니다. 잠시 후 다시 시도하세요(분당 20회 제한).' });
+    const rawText = (req.body && req.body.text) || '';
+    if(typeof rawText !== 'string' && typeof rawText !== 'number') return res.status(400).json({ ok:false, error:'text 형식이 잘못되었습니다.' });
+    const text = String(rawText).trim().slice(0, 4000);    // 텍스트 4000자 상한(과도한 토큰 방지)
     if(!text) return res.status(400).json({ ok:false, error:'설명 텍스트가 비어 있습니다.' });
-    const bodyKey = ((req.body && req.body.key) || '').toString().trim();
+    const bodyKeyRaw = (req.body && req.body.key) || '';
+    const bodyKey = String(bodyKeyRaw).trim().slice(0, 256);
     const sel = aiPick(bodyKey);
     if(!sel) return res.status(400).json({ ok:false, needKey:true, error:'AI 키가 없습니다. 앱 설정에 API 키를 붙여넣거나, 서버 환경변수(GEMINI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY)를 등록하세요.' });
     if(typeof fetch !== 'function') return res.status(500).json({ ok:false, error:'서버 Node 버전이 fetch를 지원하지 않습니다(18+ 필요).' });
@@ -141,7 +158,10 @@ app.post('/api/ai-schedule', async (req, res) => {
     const config = aiExtractJSON(raw);
     res.json({ ok:true, provider: sel.provider, config });
   }catch(e){
-    res.status(500).json({ ok:false, error: String((e && e.message) || e) });
+    // 에러 메시지에서 키 비슷한 문자열 제거 (혹시 응답 본문에 키가 노출되어도 마스킹)
+    let msg = String((e && e.message) || e);
+    msg = msg.replace(/AIza[0-9A-Za-z_\-]{10,}/g,'AIza***').replace(/sk-[A-Za-z0-9_\-]{10,}/g,'sk-***');
+    res.status(500).json({ ok:false, error: msg });
   }
 });
 
