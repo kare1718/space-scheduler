@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>목표 시급 역산형 급여 계산기</title>
+<style>
+  :root{
+    --bg:#f1f5f9; --card:#ffffff; --soft:#f8fafc; --softline:#e2e8f0;
+    --ink:#0f172a; --sub:#64748b; --line:#e2e8f0;
+    --accent:#2563eb; --accent-soft:#eff6ff; --ok:#059669; --warn:#dc2626; --amber:#b45309;
+    --base:#0f172a; --juhyu:#7c3aed; --ext:#ea580c; --night:#0891b2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Pretendard','Segoe UI','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;
+    -webkit-text-size-adjust:100%;padding:16px;transition:background .2s,color .2s;
+  }
+  .wrap{max-width:680px;margin:0 auto}
+  header{margin:8px 2px 16px}
+  .head-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  h1{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  header p{font-size:13px;color:var(--sub);margin-top:4px}
+  .head-btns{display:flex;gap:6px;flex:none}
+  .icon-btn{font-family:inherit;font-size:12px;font-weight:700;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:9px;padding:8px 10px;cursor:pointer;white-space:nowrap;transition:.15s}
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .card h2{font-size:13px;font-weight:700;color:var(--sub);letter-spacing:.2px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field.full{grid-column:1 / -1}
+  label{font-size:12.5px;font-weight:600;color:var(--sub)}
+  input,select,textarea{
+    width:100%;font-family:inherit;font-size:16px;font-weight:600;color:var(--ink);
+    background:var(--soft);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;transition:.15s;
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+  .hint{font-size:11px;color:var(--sub)}
+  .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 7px;margin-left:6px}
+
+  /* 체크박스 행 (체크박스 컴팩트, 라벨 펼침) */
+  .chk{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-top:10px;padding:11px 12px;background:var(--soft);border:1.5px solid var(--line);border-radius:10px;transition:.15s}
+  .chk:hover{border-color:#cbd5e1}
+  .chk input[type=checkbox]{flex:none;width:19px;height:19px;margin:0;margin-top:1px;accent-color:var(--accent);cursor:pointer}
+  .chk span{flex:1;min-width:0;font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.45}
+  .chk small{display:block;font-size:11.5px;font-weight:500;color:var(--sub);margin-top:2px}
+  .chk small b{color:var(--amber);font-weight:700}
+  .chk:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+
+  .preset-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
+  .preset-row .pl{font-size:11px;color:var(--sub);font-weight:700}
+  .preset-btn{font-size:12px;padding:6px 10px;border:1px solid var(--line);background:var(--soft);border-radius:8px;cursor:pointer;font-weight:600;color:var(--ink);transition:.15s}
+  .preset-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  .btnrow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .btn{flex:1;min-width:120px;font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:10px;padding:12px;cursor:pointer;transition:.15s}
+  .btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:#1d4ed8}
+  .btn-s{background:#e8edf3;color:#1e3a5f}.btn-s:hover{background:#dce3ed}
+
+  /* 시간 요약 칩 */
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{flex:1 1 calc(50% - 8px);min-width:120px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .chip .k{font-size:11.5px;color:var(--sub);font-weight:600}
+  .chip .v{font-size:17px;font-weight:800;margin-top:2px}
+  .chip .u{font-size:12px;color:var(--sub);font-weight:600;margin-left:2px}
+
+  /* 헤드라인 결과 */
+  .headline{background:linear-gradient(135deg,#1e293b,#0f172a);color:#fff;border:none}
+  .headline .k{font-size:13px;color:#94a3b8;font-weight:600}
+  .headline .v{font-size:34px;font-weight:800;letter-spacing:-1px;margin-top:4px}
+  .headline .v small{font-size:18px;font-weight:700;color:#cbd5e1}
+  .headline .meta{font-size:12px;color:#94a3b8;margin-top:8px;line-height:1.6}
+  .minwarn{margin-top:12px;background:rgba(220,38,38,.15);border:1px solid rgba(248,113,113,.5);border-radius:9px;padding:10px 12px;font-size:12.5px;color:#fecaca;line-height:1.6}
+  .minwarn b{color:#fff}
+
+  /* 결과 표 */
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th,td{padding:11px 8px;text-align:right;font-size:14px;border-bottom:1px solid var(--line)}
+  th{font-size:11.5px;color:var(--sub);font-weight:700;border-bottom:2px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  td:nth-child(2),td:nth-child(3),th:nth-child(2),th:nth-child(3){white-space:nowrap}
+  td.item{font-weight:700}
+  td.item .sub{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:1px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  tr.total td{border-top:2px solid var(--ink);border-bottom:none;font-size:16px;font-weight:800;padding-top:13px}
+  tr.total .price{color:var(--accent)}
+  .zero td{color:#94a3b8}
+  .zero td .sub{color:#cbd5e1}
+
+  .note{font-size:11.5px;color:var(--sub);line-height:1.7;margin-top:4px}
+  .note b{color:var(--ink)}
+  .err{padding:14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:var(--warn);font-size:13.5px;font-weight:600;text-align:center}
+  .law{font-size:11px;color:#94a3b8;text-align:center;margin:6px 2px 0;line-height:1.7}
+
+  /* 지각/세금 공제 */
+  .ded-list{display:flex;flex-direction:column}
+  .ded-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:14px}
+  .ded-row:last-child{border-bottom:none}
+  .ded-row span{color:var(--sub);font-weight:600}
+  .ded-row b{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ded-row.cut b{color:var(--warn)}
+  .ded-head{font-size:12px;font-weight:700;color:var(--sub);margin:14px 0 2px}
+  .bar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--softline);margin:16px 0 7px}
+  .bar-paid{background:var(--ok);transition:width .25s}
+  .bar-cut{background:var(--warn);transition:width .25s}
+  .bar-tax{background:var(--amber);transition:width .25s}
+  .bar-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--ok);font-weight:700;flex-wrap:wrap;gap:4px}
+  .bar-legend .cut{color:var(--warn)}
+  .bar-legend .tax{color:var(--amber)}
+  .net{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:16px;padding-top:15px;border-top:2px solid var(--ink)}
+  .net .lab{font-size:15px;font-weight:800}
+  .net .val{font-size:27px;font-weight:800;color:var(--accent);letter-spacing:-.6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .allpaid{display:flex;align-items:center;gap:8px;padding:13px;border-radius:10px;background:#ecfdf5;border:1px solid #a7f3d0;color:var(--ok);font-weight:700;font-size:14px}
+
+  /* 명단 */
+  #importBox{margin-bottom:14px;padding:14px;background:var(--soft);border:1px dashed var(--line);border-radius:10px}
+  #importArea{min-height:88px;font-size:14px;font-weight:500;resize:vertical}
+  .roster-wrap{overflow-x:auto}
+  table.roster{min-width:480px}
+  table.roster td.item{font-weight:700}
+  table.roster td.acts{white-space:nowrap;text-align:right}
+  .mini{border:none;background:#e8edf3;color:#1e3a5f;border-radius:7px;padding:6px 9px;font-size:12px;font-weight:700;cursor:pointer;margin-left:4px}
+  .mini:hover{background:#dce3ed}
+  .mini.del{background:#fef2f2;color:var(--warn)}
+  .mini.del:hover{background:#fee2e2}
+  tr.editing td{background:#eff6ff}
+  .empty{padding:22px;text-align:center;color:#94a3b8;font-size:13px}
+  .rtotal td{border-top:2px solid var(--ink);font-weight:800;font-size:15px}
+  .rtotal .price{color:var(--accent)}
+
+  /* 급여명세서 (인쇄 전용) */
+  #payslip{display:none}
+  .ps{max-width:640px;margin:0 auto;padding:28px;color:#0f172a;font-family:inherit}
+  .ps h2{font-size:22px;font-weight:800;text-align:center;margin-bottom:4px}
+  .ps .ps-sub{text-align:center;color:#64748b;font-size:13px;margin-bottom:20px}
+  .ps table{width:100%;border-collapse:collapse;margin-bottom:16px}
+  .ps th,.ps td{border:1px solid #cbd5e1;padding:8px 10px;font-size:13px;text-align:right}
+  .ps th{background:#f1f5f9;text-align:left;font-weight:700;width:42%}
+  .ps .sec{background:#0f172a;color:#fff;font-weight:800;text-align:center;font-size:13px;padding:7px}
+  .ps .ps-net{font-size:20px;font-weight:800;color:#2563eb}
+  .ps .ps-foot{font-size:11px;color:#94a3b8;text-align:center;margin-top:14px;line-height:1.6}
+
+  /* 다크 모드 */
+  body.dark{
+    --bg:#0f172a; --card:#1e293b; --soft:#172033; --softline:#334155;
+    --ink:#e2e8f0; --sub:#94a3b8; --line:#334155; --accent:#3b82f6; --accent-soft:#1e3a5f;
+  }
+  body.dark .card{box-shadow:none}
+  body.dark .mini,body.dark .btn-s{background:#334155;color:#cbd5e1}
+  body.dark .mini:hover,body.dark .btn-s:hover{background:#3f4d63}
+  body.dark .mini.del{background:#3b1d22;color:#fca5a5}
+  body.dark tr.editing td{background:#1e3a5f}
+  body.dark .err{background:#3b1d22;border-color:#7f1d1d;color:#fecaca}
+  body.dark .allpaid{background:#0f2a20;border-color:#1f6f43;color:#34d399}
+  body.dark .zero td,body.dark .zero td .sub{color:#64748b}
+  body.dark .chk:hover{border-color:#475569}
+
+  @media(max-width:480px){
+    body{padding:12px}
+    .grid{grid-template-columns:1fr}
+    .headline .v{font-size:28px}
+    th,td{padding:10px 5px;font-size:13px}
+    th{font-size:10.5px}
+    h1{font-size:18px}
+    .net .val{font-size:22px}
+  }
+  @media print{
+    body{background:#fff;padding:0}
+    body.dark{--ink:#0f172a}
+    body > .wrap{display:none !important}
+    #payslip{display:block !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="head-top">
+      <h1>목표 시급 역산형 급여 계산기</h1>
+      <div class="head-btns">
+        <button class="icon-btn" onclick="shareLink()">🔗 공유</button>
+        <button class="icon-btn" id="darkBtn" onclick="toggleDark()">🌙</button>
+      </div>
+    </div>
+    <p>지급하려는 <b>실질 시급</b>과 근무 스케줄을 넣으면, 근로기준법에 맞는 <b>기본시급·주휴·연장·야간수당</b>으로 분해하고 <b>지각 공제·세금·실수령액</b>까지 계산합니다.</p>
+  </header>
+
+  <!-- 설정 -->
+  <div class="card">
+    <h2>⚙️ 설정</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="minWage">최저시급 (원)</label>
+        <input id="minWage" type="number" inputmode="numeric" min="0" step="10" value="10030">
+        <span class="hint">기본시급이 이보다 낮으면 경고</span>
+      </div>
+      <div class="field">
+        <label for="taxMode">세금 공제 방식</label>
+        <select id="taxMode">
+          <option value="none">공제 없음 (세전)</option>
+          <option value="free">3.3% 원천징수 (프리랜서)</option>
+          <option value="ilyong">일용직 (일 15만원 비과세)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="lateUnit">지각 공제 방식</label>
+        <select id="lateUnit">
+          <option value="5up">5분 단위 올림</option>
+          <option value="10up">10분 단위 올림</option>
+          <option value="30up">30분 단위 올림</option>
+          <option value="exact">1분 단위 (정확)</option>
+          <option value="5down">5분 단위 내림</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="lateBase">지각 공제 기준 시급</label>
+        <select id="lateBase">
+          <option value="target">목표 실질 시급</option>
+          <option value="base">법정 기본시급</option>
+          <option value="min">최저시급</option>
+        </select>
+      </div>
+    </div>
+    <label class="chk" for="under5">
+      <input type="checkbox" id="under5">
+      <span>5인 미만 사업장 <small>체크 시 <b>연장·야간 가산수당을 면제</b>합니다 (근로기준법 제56조 미적용). 주휴수당·최저임금은 그대로 적용됩니다.</small></span>
+    </label>
+    <label class="chk" for="juhyuOff">
+      <input type="checkbox" id="juhyuOff">
+      <span>주 15시간 미만 (주휴 제외) <small>체크 시 <b>주휴수당을 제외</b>합니다. 주 소정근로 15시간 미만은 주휴 미발생.</small></span>
+    </label>
+    <label class="chk" for="holiday">
+      <input type="checkbox" id="holiday">
+      <span>휴일근로 (주휴일·공휴일) <small>체크 시 연장 대신 <b>휴일근로 가산</b>(8h 이내 0.5·초과 1.0)을 적용합니다.</small></span>
+    </label>
+  </div>
+
+  <!-- 입력 -->
+  <div class="card">
+    <h2>① 입력 <span id="editTag" class="badge" style="display:none">수정 중</span></h2>
+    <div class="grid">
+      <div class="field">
+        <label for="name">이름</label>
+        <input id="name" type="text" placeholder="예: 홍길동" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="workDate">근무일</label>
+        <input id="workDate" type="date">
+      </div>
+      <div class="field full">
+        <label for="wage">목표 실질 시급 (원)</label>
+        <input id="wage" type="number" inputmode="numeric" min="0" step="100" value="15000" placeholder="예: 15000">
+        <span class="hint">모든 수당이 녹아든, 시간당 평균 단가</span>
+      </div>
+      <div class="field">
+        <label for="start">근무 시작</label>
+        <input id="start" type="time" step="300" value="18:00">
+      </div>
+      <div class="field">
+        <label for="end">근무 종료 <span id="nextDay" class="badge" style="display:none">익일</span></label>
+        <input id="end" type="time" step="300" value="02:00">
+      </div>
+      <div class="field">
+        <label for="brk">휴게 시간 (분)</label>
+        <input id="brk" type="number" inputmode="numeric" min="0" step="10" value="60">
+      </div>
+      <div class="field">
+        <label for="late">지각 시간 (분)</label>
+        <input id="late" type="number" inputmode="numeric" min="0" step="5" value="0">
+        <span class="hint" id="lateHint">5분 단위 올림 공제</span>
+      </div>
+    </div>
+    <div class="preset-row">
+      <span class="pl">⏱ 프리셋</span>
+      <button class="preset-btn" onclick="applyPreset('09:00','18:00',60)">주간 09–18</button>
+      <button class="preset-btn" onclick="applyPreset('13:00','22:00',60)">오후 13–22</button>
+      <button class="preset-btn" onclick="applyPreset('18:00','02:00',60)">야간 18–02</button>
+      <button class="preset-btn" onclick="applyPreset('11:00','22:00',90)">풀데이 11–22</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn btn-p" id="addBtn" onclick="addToRoster()">＋ 명단에 추가</button>
+      <button class="btn btn-s" onclick="resetForm()">새로 입력</button>
+    </div>
+  </div>
+
+  <!-- 시간 산출 -->
+  <div class="card">
+    <h2>② 근무시간 산출</h2>
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <!-- 결과 영역 -->
+  <div id="resultArea"></div>
+
+  <!-- 명단 -->
+  <div class="card">
+    <h2>⑤ 명단 &amp; 합계 <span id="rosterCount" class="badge" style="display:none"></span>
+      <button class="icon-btn" onclick="toggleImport()">📋 일괄 가져오기</button>
+    </h2>
+    <div id="importBox" style="display:none">
+      <textarea id="importArea" placeholder="이름만, 또는 '이름, 지각분' 형식으로 한 줄에 한 명씩 붙여넣기&#10;예)&#10;홍길동&#10;김철수, 10&#10;이영희&#9;25"></textarea>
+      <p class="hint" style="margin:8px 0 10px">현재 ① 입력의 근무조건(시급·시작·종료·휴게)을 <b>공통 적용</b>합니다. 줄마다 숫자가 있으면 그 사람의 <b>지각(분)</b>으로 반영됩니다. (스케줄러·엑셀에서 복사한 명단도 가능)</p>
+      <button class="btn btn-p" onclick="applyImport()" style="width:100%">가져와서 명단 추가</button>
+    </div>
+    <div class="roster-wrap" id="rosterWrap"></div>
+  </div>
+
+  <p class="law">근거: 근로기준법 제55조(주휴일) · 제56조(연장·야간·휴일 근로 가산수당) · 제48조(임금명세서 교부 의무)<br>
+  세금·통상임금·주휴 산정 방식은 사업장 근로형태에 따라 차이가 있을 수 있습니다.</p>
+</div>
+
+<!-- 급여명세서 (인쇄 전용) -->
+<div id="payslip"></div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const won  = n => Math.round(n).toLocaleString('ko-KR') + '원';
+const wonD = n => n.toLocaleString('ko-KR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '원';
+const h2 = n => (Math.round(n*100)/100).toLocaleString('ko-KR');
+const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toMin(v){ if(!v) return null; const [h,m]=v.split(':').map(Number); if(isNaN(h)||isNaN(m)) return null; return h*60+m; }
+
+const LATE_LABEL={ '5up':'5분 단위 올림','10up':'10분 단위 올림','30up':'30분 단위 올림','exact':'1분 단위(정확)','5down':'5분 단위 내림' };
+const BASE_LABEL={ 'target':'목표 실질 시급','base':'법정 기본시급','min':'최저시급' };
+
+// ===== 핵심 역산 로직 (시간·배수 계산 — 검증 완료) =====
+function calc(targetHourly, startAbs, endAbs, breakMin, opts){
+  opts=opts||{};
+  const under5=opts.under5, juhyuOff=opts.juhyuOff, holiday=opts.holiday;
+  const stayH=(endAbs-startAbs)/60, breakH=breakMin/60, T=stayH-breakH;
+  if(T<=0) return {error:'근무시간이 0 이하입니다. 종료 시각 또는 휴게 시간을 확인하세요.', stayH, T};
+  const E = T>8 ? T-8 : 0;                                  // 연장(8시간 초과분)
+  let nightStay=0;
+  for(let k=-1;k<=2;k++){
+    const ns=k*1440+1320, ne=k*1440+1800;                  // 22:00 ~ 익일 06:00
+    nightStay += Math.max(0, Math.min(endAbs,ne) - Math.max(startAbs,ns));
+  }
+  nightStay/=60;
+  const dayStay = stayH - nightStay;
+  const N = Math.max(0, nightStay - Math.max(0, breakH - dayStay)); // 휴게는 주간 우선 차감
+  const baseMult  = T * 1.0;
+  const juhyuMult = juhyuOff ? 0 : (T>=8 ? 1.6 : T*0.2);    // 주 15h 미만이면 제외
+  let extMult, nightMult, holidayMult;
+  if(under5){                                              // 5인 미만: 모든 가산 면제
+    extMult=0; nightMult=0; holidayMult=0;
+  }else if(holiday){                                       // 휴일근로: 8h내 0.5·초과 1.0 (연장 포함)
+    holidayMult = Math.min(T,8)*0.5 + Math.max(0,T-8)*1.0;
+    extMult=0; nightMult=N*0.5;
+  }else{                                                   // 평일
+    extMult=E*0.5; nightMult=N*0.5; holidayMult=0;
+  }
+  const totalMult = baseMult + juhyuMult + extMult + nightMult + holidayMult;
+  const targetDaily = T * targetHourly;
+  const B = targetDaily / totalMult;                        // 법정 역산 기본시급
+  return {
+    error:null, stayH, T, E, N, B, targetDaily, totalMult,
+    baseMult, juhyuMult, extMult, nightMult, holidayMult,
+    baseAmt:B*baseMult, juhyuAmt:B*juhyuMult, extAmt:B*extMult, nightAmt:B*nightMult, holidayAmt:B*holidayMult
+  };
+}
+// 정수 반올림 후 잔액을 첫 항목(기본)에 흡수 → 표시 합계가 목표와 정확히 일치
+function reconcile(parts, target){
+  const r = parts.map(p=>Math.round(p));
+  const diff = Math.round(target) - r.reduce((a,b)=>a+b,0);
+  r[0] += diff;
+  return r;
+}
+// 지급 항목(컴포넌트) 목록 — render/명세서/명단 공용
+function buildComponents(r, st){
+  const comps=[
+    {key:'base',  nm:'법정 기본시급', mult:r.baseMult,  amt:r.baseAmt,  color:'var(--base)',  sub:`기본근로 ×${r.baseMult.toFixed(2)} (T 전체 1.0배)`},
+    {key:'juhyu', nm:'주휴수당',     mult:r.juhyuMult, amt:r.juhyuAmt, color:'var(--juhyu)', sub: st.juhyuOff ? '주 15시간 미만 — 주휴 제외' : `주휴 배수 ×${r.juhyuMult.toFixed(2)} ${r.T>=8?'(8h↑ 고정 1.6)':'(T×0.2)'}`},
+  ];
+  if(!st.under5 && st.holiday){
+    comps.push({key:'holiday', nm:'휴일근로수당', mult:r.holidayMult, amt:r.holidayAmt, color:'var(--ext)', sub:`휴일 ${h2(r.T)}h · 8h내 0.5·초과 1.0`});
+  }else{
+    comps.push({key:'ext', nm:'연장수당', mult:r.extMult, amt:r.extAmt, color:'var(--ext)', sub: st.under5 ? `연장 ${h2(r.E)}h · 5인 미만 면제` : `연장 ${h2(r.E)}h × 0.5 가산`});
+  }
+  comps.push({key:'night', nm:'야간수당', mult:r.nightMult, amt:r.nightAmt, color:'var(--night)', sub: st.under5 ? `야간 ${h2(r.N)}h · 5인 미만 면제` : `야간 ${h2(r.N)}h × 0.5 가산`});
+  return comps;
+}
+
+// ===== 세금 공제 =====
+function taxDeduct(pay, mode){
+  if(mode==='free'){
+    const it=Math.round(pay*0.03), lt=Math.round(pay*0.003);
+    return {total:it+lt, items:[['소득세 (3%)',it],['지방소득세 (0.3%)',lt]]};
+  }
+  if(mode==='ilyong'){
+    const taxable=Math.max(0, pay-150000);                  // 일 15만원 비과세
+    const it=Math.floor(taxable*0.06*0.45);                 // 6% × (1-55% 세액공제) = 2.7%
+    const lt=Math.floor(it*0.1);
+    return {total:it+lt, items:[['소득세 (일용)',it],['지방소득세',lt]], note:'일 15만원 비과세 적용'};
+  }
+  return {total:0, items:[]};
+}
+
+// ===== 지각 공제 시간(분) =====
+function lateDeductMin(lateRaw, unit){
+  lateRaw=Math.max(0,lateRaw||0);
+  if(unit==='exact') return lateRaw;
+  if(unit==='5down') return Math.floor(lateRaw/5)*5;
+  if(unit==='10up') return Math.ceil(lateRaw/10)*10;
+  if(unit==='30up') return Math.ceil(lateRaw/30)*30;
+  return Math.ceil(lateRaw/5)*5;                            // 5up 기본
+}
+
+// ===== 설정/폼 읽기 =====
+function getSettings(){ return {
+  minWage:Math.max(0,+$('minWage').value||0), taxMode:$('taxMode').value,
+  under5:$('under5').checked, juhyuOff:$('juhyuOff').checked, holiday:$('holiday').checked,
+  lateUnit:$('lateUnit').value, lateBase:$('lateBase').value
+}; }
+function readForm(){ return {
+  name:$('name').value.trim(), date:$('workDate').value,
+  wage:+$('wage').value||0, start:$('start').value, end:$('end').value,
+  brk:+$('brk').value||0, late:+$('late').value||0
+}; }
+
+// ===== 한 명 종합 계산 =====
+function computeStaff(inp, st){
+  const sMin=toMin(inp.start), eRaw=toMin(inp.end);
+  if(sMin==null||eRaw==null) return {valid:false, reason:'근무 시작/종료 시각을 입력하세요.'};
+  let startAbs=sMin, endAbs=eRaw, overnight=false;
+  if(endAbs<=startAbs){ endAbs+=1440; overnight=true; }
+  const wage=Math.max(0, inp.wage||0);
+  const r=calc(wage, startAbs, endAbs, inp.brk||0, {under5:st.under5, juhyuOff:st.juhyuOff, holiday:st.holiday});
+  if(r.error) return {valid:false, reason:r.error, overnight};
+  if(wage<=0) return {valid:false, reason:'목표 실질 시급을 입력하세요.', overnight};
+  const grandTotal=Math.round(r.targetDaily);
+  const comps=buildComponents(r, st);
+  const totalsDisp=reconcile(comps.map(x=>x.amt), r.targetDaily);    // 합계 = 목표 총 일급
+  const hourlyDisp=reconcile(comps.map(x=>x.amt/r.T), wage);         // 합계 = 목표 실질 시급
+  // 지각 공제 (단위/기준 옵션 적용, 실근무 cap)
+  const lateRaw=Math.max(0, inp.late||0);
+  const dedRawMin=lateDeductMin(lateRaw, st.lateUnit);
+  const workedMin=Math.floor(r.T*60);
+  const dedMin=Math.min(dedRawMin, workedMin);
+  const capped=dedRawMin>workedMin;
+  const rate = st.lateBase==='base' ? r.B : st.lateBase==='min' ? st.minWage : wage;
+  const dedAmt=Math.round((dedMin/60)*rate);
+  const netPay=grandTotal-dedAmt;                           // 세전 실지급
+  const tax=taxDeduct(netPay, st.taxMode);
+  const takeHome=netPay-tax.total;                          // 실수령
+  const belowMin = st.minWage>0 && r.B < st.minWage;
+  const recWage = belowMin ? Math.ceil(st.minWage*r.totalMult/r.T) : null;
+  return {valid:true, overnight, wage, r, comps, totalsDisp, hourlyDisp, grandTotal,
+    lateRaw, dedRawMin, dedMin, capped, rate, dedAmt, netPay, tax, takeHome, belowMin, recWage};
+}
+
+// ===== 상세 렌더 (현재 입력 1명) =====
+function render(){
+  const inp=readForm(), st=getSettings();
+  $('lateHint').textContent = (LATE_LABEL[st.lateUnit]||'5분 단위 올림')+' 공제';
+  const sMin=toMin(inp.start), eRaw=toMin(inp.end);
+  $('nextDay').style.display = (sMin!=null&&eRaw!=null&&eRaw<=sMin) ? 'inline-block' : 'none';
+
+  const c=computeStaff(inp, st);
+  const chips=$('chips');
+  if(sMin==null||eRaw==null){
+    chips.innerHTML='<div class="chip" style="flex:1 1 100%"><div class="k">근무 시작/종료 시각을 입력하세요</div></div>';
+    $('resultArea').innerHTML=''; saveAll(); return;
+  }
+  const stayH = ((eRaw<=sMin?eRaw+1440:eRaw)-sMin)/60;
+  const r=c.valid?c.r:null;
+  chips.innerHTML=`
+    <div class="chip"><div class="k">총 체류</div><div class="v">${h2(stayH)}<span class="u">시간</span></div></div>
+    <div class="chip"><div class="k">실 근무 (T)</div><div class="v" style="color:${c.valid?'var(--accent)':'var(--warn)'}">${c.valid?h2(r.T):'–'}<span class="u">시간</span></div></div>
+    <div class="chip"><div class="k">연장 (E, 8h 초과)</div><div class="v" style="color:var(--ext)">${c.valid?h2(r.E):'–'}<span class="u">시간</span></div></div>
+    <div class="chip"><div class="k">야간 (N, 22~06시)</div><div class="v" style="color:var(--night)">${c.valid?h2(r.N):'–'}<span class="u">시간</span></div></div>`;
+
+  if(!c.valid){ $('resultArea').innerHTML=`<div class="card"><div class="err">⚠️ ${esc(c.reason)}</div></div>`; saveAll(); return; }
+
+  const wage=c.wage, grandTotal=c.grandTotal;
+  let tbody='';
+  c.comps.forEach((cp,i)=>{
+    tbody+=`<tr class="${c.totalsDisp[i]===0?'zero':''}">
+      <td class="item"><span class="dot" style="background:${cp.color}"></span>${cp.nm}<span class="sub">${cp.sub}</span></td>
+      <td>${won(c.hourlyDisp[i])}</td><td>${won(c.totalsDisp[i])}</td></tr>`;
+  });
+
+  const cutPct=grandTotal>0?Math.min(100,c.dedAmt/grandTotal*100):0;
+  const taxPct=grandTotal>0?Math.min(100,c.tax.total/grandTotal*100):0;
+  const homePct=Math.max(0,100-cutPct-taxPct);
+  const lateBlock = c.lateRaw<=0
+    ? `<div class="allpaid">✅ 지각 없음 · 전액 지급</div>`
+    : `<div class="ded-list">
+         <div class="ded-row"><span>실제 지각</span><b>${c.lateRaw.toLocaleString('ko-KR')}분</b></div>
+         <div class="ded-row"><span>공제 적용 · ${LATE_LABEL[st.lateUnit]||'5분 단위 올림'}</span><b>${c.dedRawMin.toLocaleString('ko-KR')}분${c.capped?` → ${c.dedMin}분`:''}</b></div>
+         <div class="ded-row cut"><span>지각 공제액 <small style="font-weight:600;color:#94a3b8">· ${BASE_LABEL[st.lateBase]||'목표 실질 시급'} ${Math.round(c.rate).toLocaleString('ko-KR')}원 기준</small></span><b>−${won(c.dedAmt)}</b></div>
+       </div>
+       ${c.capped?'<p class="note" style="color:var(--warn)">⚠️ 지각이 실근무시간을 초과하여 실근무시간만큼만 공제했습니다 (사실상 결근).</p>':''}`;
+  let taxBlock;
+  if(c.tax.total>0){
+    taxBlock=`<div class="ded-head">세금 공제 ${c.tax.note?`<small style="font-weight:600;color:#94a3b8">· ${c.tax.note}</small>`:''}</div>
+      <div class="ded-list">
+        ${c.tax.items.map(([k,v])=>`<div class="ded-row"><span>${k}</span><b>−${won(v)}</b></div>`).join('')}
+        <div class="ded-row cut"><span>세금 합계</span><b>−${won(c.tax.total)}</b></div>
+      </div>`;
+  }else{
+    taxBlock=`<div class="ded-head">세금 공제</div><div class="ded-row" style="border:none;padding-top:4px"><span>공제 없음 (세전 지급)</span><b>0원</b></div>`;
+  }
+  const dedInner=`${lateBlock}${taxBlock}
+    <div class="bar">
+      <div class="bar-paid" style="width:${homePct}%"></div>
+      <div class="bar-tax"  style="width:${taxPct}%;min-width:${c.tax.total>0?'5px':'0'}"></div>
+      <div class="bar-cut"  style="width:${cutPct}%;min-width:${c.dedAmt>0?'5px':'0'}"></div>
+    </div>
+    <div class="bar-legend">
+      <span>실수령 ${won(c.takeHome)}</span>
+      ${c.tax.total>0?`<span class="tax">세금 −${won(c.tax.total)}</span>`:''}
+      ${c.dedAmt>0?`<span class="cut">지각 −${won(c.dedAmt)}</span>`:''}
+    </div>
+    <div class="net"><span class="lab">최종 실수령액</span><span class="val">${won(c.takeHome)}</span></div>`;
+
+  const tags=[]; if(st.under5)tags.push('5인 미만'); if(st.holiday)tags.push('휴일근로'); if(st.juhyuOff)tags.push('주휴 제외');
+  $('resultArea').innerHTML=`
+    <div class="card headline">
+      <div class="k">근로계약서 기재용 · 법정 역산 기본시급</div>
+      <div class="v">${wonD(r.B).replace('원','')}<small> 원</small></div>
+      <div class="meta">
+        목표 총 일급 <b style="color:#fff">${won(r.targetDaily)}</b> ÷ 총 배수 <b style="color:#fff">${r.totalMult.toFixed(2)}</b><br>
+        ※ 계약서에 위 기본시급을 기재하면, 가산수당 포함 실지급이 시급 ${wage.toLocaleString('ko-KR')}원과 일치합니다.
+      </div>
+      ${c.belowMin?`<div class="minwarn">⚠️ <b>법정 기본시급이 최저시급(${st.minWage.toLocaleString('ko-KR')}원) 미만</b>입니다. 적법하려면 목표 실질 시급을 최소 <b>${c.recWage.toLocaleString('ko-KR')}원</b> 이상으로 올리세요.</div>`:''}
+    </div>
+
+    <div class="card">
+      <h2>③ 수당 분해 결과 (만근 기준${tags.length?' · '+tags.join(' · '):''})</h2>
+      <table>
+        <thead><tr><th>항목</th><th>시간당 평균 단가</th><th>총 일급 반영액</th></tr></thead>
+        <tbody>
+          ${tbody}
+          <tr class="total">
+            <td class="item">${c.lateRaw>0?'정상 일급 <span class="sub" style="font-weight:600">지각 공제 전</span>':'합계 (세전 일급)'}</td>
+            <td class="price">${won(wage)}</td><td class="price">${won(grandTotal)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="note">· <b>시간당 평균 단가</b> 합계 = 목표 실질 시급, <b>총 일급 반영액</b> 합계 = 목표 총 일급 (오차 0).</p>
+    </div>
+
+    <div class="card">
+      <h2>④ 지각 공제 · 세금 · 실수령
+        <button class="mini" onclick="printPayslip()">🖨️ 급여명세서</button>
+      </h2>
+      ${dedInner}
+    </div>`;
+  saveAll();
+}
+
+// ===== 명단(roster) =====
+let roster=[];           // [{id,name,date,wage,start,end,brk,late}]
+let editId=null;
+let nextId=1;
+
+function addToRoster(){
+  const inp=readForm(), st=getSettings();
+  const c=computeStaff(inp, st);
+  if(!c.valid){ alert('입력 오류: '+c.reason); return; }
+  if(!inp.name) inp.name='(이름 없음)';
+  if(editId){
+    const e=roster.find(x=>x.id===editId);
+    if(e) Object.assign(e, inp);
+    editId=null;
+  }else{
+    roster.push(Object.assign({id:nextId++}, inp));
+  }
+  $('editTag').style.display='none'; $('addBtn').textContent='＋ 명단에 추가';
+  renderRoster(); saveAll();
+}
+function editRoster(id){
+  const e=roster.find(x=>x.id===id); if(!e) return;
+  $('name').value=e.name; $('workDate').value=e.date||''; $('wage').value=e.wage;
+  $('start').value=e.start; $('end').value=e.end; $('brk').value=e.brk; $('late').value=e.late;
+  editId=id;
+  $('editTag').style.display='inline-block'; $('addBtn').textContent='💾 수정 저장';
+  render(); renderRoster();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function removeRoster(id){
+  roster=roster.filter(x=>x.id!==id);
+  if(editId===id){ editId=null; $('editTag').style.display='none'; $('addBtn').textContent='＋ 명단에 추가'; }
+  renderRoster(); saveAll();
+}
+function resetForm(){
+  $('name').value=''; $('wage').value='15000'; $('start').value='18:00'; $('end').value='02:00'; $('brk').value='60'; $('late').value='0';
+  editId=null; $('editTag').style.display='none'; $('addBtn').textContent='＋ 명단에 추가';
+  render();
+}
+function renderRoster(){
+  const w=$('rosterWrap'), st=getSettings(), cnt=$('rosterCount');
+  if(!roster.length){ w.innerHTML='<div class="empty">아직 명단이 없습니다. 위에서 정보를 입력하고 <b>＋ 명단에 추가</b>를 누르거나, <b>📋 일괄 가져오기</b>로 여러 명을 한 번에 추가하세요.</div>'; cnt.style.display='none'; return; }
+  cnt.style.display='inline-block'; cnt.textContent=`${roster.length}명`;
+  let sumTotal=0, sumTax=0, sumHome=0, body='';
+  roster.forEach(e=>{
+    const c=computeStaff(e, st);
+    const editing = e.id===editId ? ' editing' : '';
+    if(!c.valid){
+      body+=`<tr class="${editing}"><td class="item">${esc(e.name)}</td><td colspan="2" style="color:var(--warn);text-align:left">입력 오류</td>
+        <td class="acts"><button class="mini" onclick="editRoster(${e.id})">편집</button><button class="mini del" onclick="removeRoster(${e.id})">삭제</button></td></tr>`;
+      return;
+    }
+    sumTotal+=c.netPay; sumTax+=c.tax.total; sumHome+=c.takeHome;
+    const tag = (c.dedAmt>0?` <span style="color:var(--warn);font-size:11px">지각 −${won(c.dedAmt)}</span>`:'') + (c.belowMin?' <span style="color:var(--warn);font-size:11px">⚠최저미만</span>':'');
+    body+=`<tr class="${editing}">
+      <td class="item">${esc(e.name||'(이름 없음)')}<span class="sub" style="display:block;font-size:11px;font-weight:500;color:var(--sub)">${esc(e.start)}~${esc(e.end)} · 실근무 ${h2(c.r.T)}h${tag}</span></td>
+      <td>${won(c.netPay)}</td>
+      <td><b>${won(c.takeHome)}</b></td>
+      <td class="acts"><button class="mini" onclick="printPayslipFor(${e.id})">🖨️</button><button class="mini" onclick="editRoster(${e.id})">편집</button><button class="mini del" onclick="removeRoster(${e.id})">삭제</button></td>
+    </tr>`;
+  });
+  w.innerHTML=`<table class="roster">
+    <thead><tr><th>이름 / 근무</th><th>세전 실지급</th><th>실수령</th><th></th></tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr class="rtotal">
+      <td>합계 ${roster.length}명</td>
+      <td class="price">${won(sumTotal)}</td>
+      <td class="price">${won(sumHome)}</td>
+      <td class="acts" style="font-size:11px;color:var(--sub);font-weight:600">세금 ${won(sumTax)}</td>
+    </tr></tfoot>
+  </table>`;
+}
+
+// ===== 명단 일괄 가져오기 =====
+function toggleImport(){ const b=$('importBox'); b.style.display = b.style.display==='none' ? '' : 'none'; }
+function applyImport(){
+  const raw=$('importArea').value;
+  if(!raw.trim()){ alert('가져올 명단을 붙여넣어 주세요.'); return; }
+  const tpl=readForm();                                    // 현재 폼 = 공통 근무조건 템플릿
+  let added=0;
+  raw.split(/\r?\n/).forEach(line=>{
+    const parts=line.split(/[\t,;|]+/).map(s=>s.trim()).filter(Boolean);
+    if(!parts.length) return;
+    const isNumTok = p => /^[+\-]?\d+(\.\d+)?\s*분?$/.test(p);   // 순수 숫자(분) 토큰
+    // 이름 = 글자가 섞인 첫 토큰(앞의 번호 건너뜀), 지각 = 이름 뒤 첫 숫자 토큰
+    let name='', nameIdx=-1, late=0;
+    for(let i=0;i<parts.length;i++){ if(!isNumTok(parts[i]) && /\D/.test(parts[i])){ name=parts[i]; nameIdx=i; break; } }
+    if(!name){ name=parts[0]; nameIdx=0; }
+    for(let i=nameIdx+1;i<parts.length;i++){ if(isNumTok(parts[i])){ late=Math.max(0, parseFloat(parts[i].replace(/[^\d.]/g,''))||0); break; } }
+    roster.push({id:nextId++, name, date:tpl.date, wage:tpl.wage, start:tpl.start, end:tpl.end, brk:tpl.brk, late});
+    added++;
+  });
+  $('importArea').value=''; $('importBox').style.display='none';
+  renderRoster(); saveAll();
+  alert(added+'명을 명단에 추가했습니다. (근무조건은 현재 입력값 기준, 지각은 각자 반영)');
+}
+
+// ===== 급여명세서 (인쇄) =====
+function buildPayslip(inp, c){
+  const r=c.r;
+  const dedRows=[];
+  if(c.dedAmt>0) dedRows.push(['지각 공제 ('+c.dedMin+'분)', -c.dedAmt]);
+  c.tax.items.forEach(([k,v])=>{ if(v>0) dedRows.push([k, -v]); });
+  const dedTotal=c.dedAmt + c.tax.total;
+  const dateStr=inp.date||'';
+  const holLine = (c.comps.some(x=>x.key==='holiday')?' · 휴일근로':'');
+  return `<div class="ps">
+    <h2>급여명세서</h2>
+    <div class="ps-sub">${esc(inp.name||'(이름 없음)')} 님${dateStr?` · ${dateStr}`:''}${holLine}</div>
+    <table>
+      <tr><th>근무 시간</th><td>${esc(inp.start)} ~ ${esc(inp.end)} (실근무 ${h2(r.T)}시간)</td></tr>
+      <tr><th>연장 / 야간</th><td>연장 ${h2(r.E)}h · 야간 ${h2(r.N)}h</td></tr>
+      <tr><th>법정 기본시급</th><td>${wonD(r.B)}</td></tr>
+      <tr><th>목표 실질 시급</th><td>${won(c.wage)}</td></tr>
+    </table>
+    <table>
+      <tr><td class="sec" colspan="2">지급 항목</td></tr>
+      ${c.comps.map((cp,i)=>`<tr><th>${cp.nm}</th><td>${won(c.totalsDisp[i])}</td></tr>`).join('')}
+      <tr><th>지급 합계 (세전)</th><td>${won(c.grandTotal)}</td></tr>
+    </table>
+    <table>
+      <tr><td class="sec" colspan="2">공제 항목</td></tr>
+      ${dedRows.length?dedRows.map(([k,v])=>`<tr><th>${k}</th><td>−${won(Math.abs(v))}</td></tr>`).join(''):'<tr><th>공제 없음</th><td>0원</td></tr>'}
+      <tr><th>공제 합계</th><td>${dedTotal>0?'−'+won(dedTotal):'0원'}</td></tr>
+    </table>
+    <table>
+      <tr><th>실수령액</th><td class="ps-net">${won(c.takeHome)}</td></tr>
+    </table>
+    <div class="ps-foot">본 명세서는 근로기준법 제48조에 따른 임금명세서 양식을 간이화한 것입니다.<br>목표시급 역산 계산기</div>
+  </div>`;
+}
+function printPayslip(){
+  const c=computeStaff(readForm(), getSettings());
+  if(!c.valid){ alert('명세서를 만들 수 없습니다: '+c.reason); return; }
+  $('payslip').innerHTML=buildPayslip(readForm(), c); window.print();
+}
+function printPayslipFor(id){
+  const e=roster.find(x=>x.id===id); if(!e) return;
+  const c=computeStaff(e, getSettings());
+  if(!c.valid){ alert('명세서를 만들 수 없습니다.'); return; }
+  $('payslip').innerHTML=buildPayslip(e, c); window.print();
+}
+
+// ===== 근무 프리셋 =====
+function applyPreset(s,e,b){
+  $('start').value=s; $('end').value=e; $('brk').value=b;
+  render();
+}
+
+// ===== 다크 모드 =====
+const LS_THEME='payrollCalc_theme';
+function applyTheme(t){
+  document.body.classList.toggle('dark', t==='dark');
+  $('darkBtn').textContent = t==='dark' ? '☀️' : '🌙';
+  try{ localStorage.setItem(LS_THEME, t); }catch(e){}
+}
+function toggleDark(){ applyTheme(document.body.classList.contains('dark')?'light':'dark'); }
+
+// ===== 저장 / 불러오기 (localStorage) =====
+const LS='payrollCalc_v1';
+function stateObject(){
+  return { settings:getSettings(), form:readForm(), roster, nextId };
+}
+function saveAll(){ try{ localStorage.setItem(LS, JSON.stringify(stateObject())); }catch(e){} }
+function applyState(d, withRoster){
+  if(!d) return;
+  const s=d.settings||{};
+  if(s.minWage!=null)$('minWage').value=s.minWage;
+  if(s.taxMode)$('taxMode').value=s.taxMode;
+  if(s.lateUnit)$('lateUnit').value=s.lateUnit;
+  if(s.lateBase)$('lateBase').value=s.lateBase;
+  $('under5').checked=!!s.under5; $('juhyuOff').checked=!!s.juhyuOff; $('holiday').checked=!!s.holiday;
+  const f=d.form||{};
+  if('name' in f)$('name').value=f.name||'';
+  if('date' in f)$('workDate').value=f.date||'';
+  if(f.wage)$('wage').value=f.wage;
+  if(f.start)$('start').value=f.start;
+  if(f.end)$('end').value=f.end;
+  if(f.brk!=null)$('brk').value=f.brk;
+  if(f.late!=null)$('late').value=f.late;
+  if(withRoster && Array.isArray(d.roster)){ roster=d.roster; nextId=d.nextId|| (roster.reduce((m,x)=>Math.max(m,x.id||0),0)+1); }
+}
+function loadAll(){
+  try{ const raw=localStorage.getItem(LS); if(!raw) return false; applyState(JSON.parse(raw), true); return true; }catch(e){ return false; }
+}
+
+// ===== 공유 링크 (전체 상태를 URL 해시로) =====
+function shareLink(){
+  try{
+    const b64=btoa(unescape(encodeURIComponent(JSON.stringify(stateObject()))));
+    const url=location.origin+location.pathname+'#d='+b64;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(()=>alert('공유 링크를 복사했습니다.\n다른 기기·동료에게 붙여넣으면 동일한 설정·명단으로 열립니다.'),()=>prompt('아래 링크를 복사하세요:',url));
+    }else prompt('아래 링크를 복사하세요:',url);
+  }catch(e){ alert('링크 생성 실패: '+e.message); }
+}
+function loadFromHash(){
+  if(location.hash.indexOf('#d=')!==0) return false;
+  try{
+    const d=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));
+    applyState(d, true); saveAll();
+    history.replaceState(null,'',location.pathname);       // 해시 정리(재공유 깔끔)
+    return true;
+  }catch(e){ return false; }
+}
+
+// ===== 초기화 =====
+['name','workDate','wage','start','end','brk','late','minWage','taxMode','under5','juhyuOff','holiday','lateUnit','lateBase'].forEach(id=>{
+  $(id).addEventListener('input', render); $(id).addEventListener('change', render);
+});
+['minWage','taxMode','under5','juhyuOff','holiday','lateUnit','lateBase'].forEach(id=> $(id).addEventListener('change', renderRoster));
+try{ applyTheme(localStorage.getItem(LS_THEME)||'light'); }catch(e){}
+const fromHash=loadFromHash();
+const loaded=fromHash||loadAll();
+if(!loaded){ try{ $('workDate').value=new Date().toISOString().slice(0,10); }catch(e){} }
+render();
+renderRoster();
+</script>
+</body>
+</html>

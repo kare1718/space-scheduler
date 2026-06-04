@@ -1,5 +1,5 @@
-const CACHE='spaceschV10';
-const URLS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
+const CACHE='spaceschV11';
+const URLS=['./','./index.html','./payroll.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(
   caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
@@ -17,11 +17,11 @@ self.addEventListener('fetch',e=>{
     e.respondWith(
       fetch(req).then(res=>{
         if(!res||!res.ok){                                        // 404(Not Found)·5xx 등
-          return caches.match('./index.html').then(c=>c||res);
+          return caches.match(req).then(c=>c||caches.match('./index.html')).then(c=>c||res);
         }
         const cl=res.clone();caches.open(CACHE).then(c=>c.put(req,cl));
         return res;
-      }).catch(()=>caches.match('./index.html').then(c=>c||caches.match('./')))
+      }).catch(()=>caches.match(req).then(c=>c||caches.match('./index.html')).then(c=>c||caches.match('./')))
     );
     return;
   }
