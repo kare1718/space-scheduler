@@ -326,12 +326,12 @@ body{font-size:13px}
       <nav class="flex gap-1" id="tabs">
         <button class="tab-btn on" data-t="att">📋 출결</button>
         <button class="tab-btn" data-t="main">🗓️ 근무표</button>
+        <button class="tab-btn" data-t="pay">💰 급여</button>
       </nav>
       <select id="saveSelect" class="topbar-sel" onchange="loadSelectedSave(this.value)" title="저장본 불러오기">
         <option value="">📂 저장본 선택…</option>
       </select>
       <button onclick="openSaveModal()" class="icon-btn p" title="현재 상태 저장">💾 저장</button>
-      <a href="./payroll.html" class="icon-btn" title="목표 시급 역산형 급여 계산기" style="text-decoration:none;display:inline-flex;align-items:center">💰 급여</a>
       <button id="darkBtn" onclick="toggleDark()" class="icon-btn" title="밝게/어둡게 화면 전환">🌙 다크</button>
       <div class="relative" id="exportWrap" style="display:none">
         <button onclick="document.getElementById('exportMenu').classList.toggle('hidden')" class="icon-btn" title="근무표를 이미지/PDF로 저장">📥 내보내기</button>
@@ -514,6 +514,12 @@ body{font-size:13px}
   <p class="text-[11px] text-[#94a3b8] mt-2 px-1">💡 빈 칸 = 미입력 · 도착 시각이 회차 기준시각보다 늦으면 지각(+분)으로 집계됩니다. 표를 가로로 스크롤해 회차를 확인하세요.</p>
 </section>
 
+<!-- ======================== TAB: 급여 계산기 (임베드) ======================== -->
+<section id="p-pay" class="tab-p fade-up hidden">
+  <iframe id="payFrame" data-src="./payroll.html" title="목표 시급 역산형 급여 계산기"
+    style="width:100%;min-height:600px;border:none;border-radius:14px;background:#f0f4f8;display:block" scrolling="no"></iframe>
+</section>
+
 </main>
 
 <!-- 저장/불러오기 모달 -->
@@ -620,7 +626,18 @@ function bindTabs(){
       document.getElementById('p-'+b.dataset.t).classList.remove('hidden');
       if(b.dataset.t==='att')renderAtt();                       // 출결 진입: 명단(nameMap) 반영
       else if(b.dataset.t==='main'){renderNameBank();if(S.sch)renderSchTable(),renderSchTags();}  // 근무표 진입: 이름 변경 반영
+      else if(b.dataset.t==='pay')initPayFrame();               // 급여 진입: 계산기 임베드(지연 로드)
     };
+  });
+}
+// 급여 계산기(payroll.html) 임베드 — 첫 진입 시 로드, 내용 높이에 맞춰 자동 리사이즈(내부 스크롤 없음)
+function fitPayFrame(){const f=document.getElementById('payFrame');if(!f)return;try{f.style.height=f.contentWindow.document.documentElement.scrollHeight+'px';}catch(e){}}
+function initPayFrame(){
+  const f=document.getElementById('payFrame');if(!f||f.dataset.loaded)return;
+  f.dataset.loaded='1';f.src=f.dataset.src;
+  f.addEventListener('load',()=>{
+    fitPayFrame();
+    try{new ResizeObserver(fitPayFrame).observe(f.contentWindow.document.body);}catch(e){setInterval(fitPayFrame,700);}
   });
 }
 
