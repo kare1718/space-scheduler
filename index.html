@@ -111,6 +111,11 @@ body{font-family:'Paperlogy','Noto Sans KR',sans-serif;background:#f0f4f8;color:
 .icon-btn{background:#e8edf3;color:#1e3a5f;border:none;border-radius:9px;padding:9px 12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s}
 .icon-btn:hover{background:#dce3ed}
 .icon-btn.p{background:#1e3a5f;color:#fff}.icon-btn.p:hover{background:#15304f}
+.att-num-toggle{display:inline-flex;align-items:center;gap:5px;background:#e8edf3;border:none;border-radius:9px;padding:8px 11px;font-size:13px;font-weight:600;color:#1e3a5f;cursor:pointer;font-family:inherit;white-space:nowrap;user-select:none}
+.att-num-toggle:hover{background:#dce3ed}
+.att-num-toggle input{width:15px;height:15px;margin:0;accent-color:#1e3a5f;cursor:pointer;flex:none}
+body.dark .att-num-toggle{background:#243144;color:#cbd5e1}
+body.dark .att-num-toggle:hover{background:#2d3b50}
 
 /* ===== 엑셀형 출결 그리드 ===== */
 .xls-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(30,58,95,.05);width:fit-content;max-width:100%}
@@ -321,6 +326,7 @@ body{font-size:13px}
         <span class="font-bold text-[#1e3a5f] tracking-wider" style="font-size:22px">PREFER</span>
         <span style="font-family:'Dancing Script',cursive;font-size:16px;color:#64748b;margin-top:-3px">STAFF scheduler</span>
       </div>
+      <span id="headerSaveName" class="hidden" title="현재 작업 중인 저장본" style="font-size:12px;font-weight:700;color:#1e3a5f;background:#eef2f7;border:1px solid #d8e0ea;border-radius:8px;padding:4px 10px;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis"></span>
     </div>
     <div class="flex items-center gap-2 flex-wrap justify-end">
       <nav class="flex gap-1" id="tabs">
@@ -331,6 +337,7 @@ body{font-size:13px}
       <select id="saveSelect" class="topbar-sel" onchange="loadSelectedSave(this.value)" title="저장본 불러오기">
         <option value="">📂 저장본 선택…</option>
       </select>
+      <button onclick="newSheet()" class="icon-btn" title="새 시트 시작 (빈 출결·근무표). 저장본은 그대로 남습니다">📄 새로 만들기</button>
       <button onclick="openSaveModal()" class="icon-btn p" title="현재 상태 저장">💾 저장</button>
       <button id="darkBtn" onclick="toggleDark()" class="icon-btn" title="밝게/어둡게 화면 전환">🌙 다크</button>
       <div class="relative" id="exportWrap" style="display:none">
@@ -482,6 +489,7 @@ body{font-size:13px}
         <p class="text-[11px] text-[#94a3b8] mt-0.5">이름을 입력하면 근무표에도 자동 반영돼요. 회차(열)를 추가하면 행사 전체 지각이 누적 집계됩니다.</p>
       </div>
       <div class="flex items-center gap-1.5 flex-wrap justify-end">
+        <label class="att-num-toggle" title="인원 번호 표시 켜기/끄기"><input type="checkbox" id="showNumChk" checked onchange="toggleShowNumbers(this.checked)"><span>#️⃣ 번호</span></label>
         <button onclick="setAttSort('name')" class="icon-btn" title="가나다 정렬">가나다<span id="sortNameArrow" class="att-sort-pill"></span></button>
         <button onclick="setAttSort('late')" class="icon-btn" title="지각 많은 순 정렬">지각순<span id="sortLateArrow" class="att-sort-pill"></span></button>
         <button onclick="addPerson()" class="icon-btn p">＋ 인원</button>
@@ -591,6 +599,7 @@ let S={
   fixedMembers:{},
   curName:'',
   curDate:'',
+  showNumbers:true,
 };
 
 // ===== INIT =====
@@ -1940,7 +1949,7 @@ function renderAtt(){
   }
   people.forEach((s,ri)=>{
     h+='<tr>';
-    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in"><span class="xls-no" style="background:${codeColor(s.code)}">${esc(s.code)}</span><input class="xls-name-inp" value="${esc(S.nameMap[s.code]||'')}" placeholder="이름" lang="ko" oninput="setAttName('${esc(s.code)}',this.value)" onchange="commitAttName('${esc(s.code)}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${esc(s.code)}')" title="이 인원 삭제">✕</button></div></td>`;
+    h+=`<td class="xls-c xls-sticky-l xls-name"><div class="xls-name-cell-in">${S.showNumbers===false?'':`<span class="xls-no" style="background:${codeColor(s.code)}">${ri+1}</span>`}<input class="xls-name-inp" value="${esc(S.nameMap[s.code]||'')}" placeholder="이름" lang="ko" oninput="setAttName('${esc(s.code)}',this.value)" onchange="commitAttName('${esc(s.code)}')" onkeydown="attNameNav(event,${ri})"><button class="xls-del" onclick="removePerson('${esc(s.code)}')" title="이 인원 삭제">✕</button></div></td>`;
     sess.forEach(ss=>{
       const r=(ss.recs&&ss.recs[s.code])||{};const t=r.time||'';
       const lm=t?lateMin(t,ss.base):null;
@@ -1986,7 +1995,7 @@ function getSerializableState(){
     zones:S.zones,coverZone:S.coverZone||'',pools:S.pools||[],staff:S.staff,nameMap:S.nameMap,
     nameEntries:S.nameEntries,nextNameId:S.nextNameId,sch:S.sch,attend:S.attend,
     sessions:S.sessions||[],fixedMembers:S.fixedMembers||{},
-    curName:S.curName||'',curDate:S.curDate||''};
+    curName:S.curName||'',curDate:S.curDate||'',showNumbers:S.showNumbers!==false};
 }
 
 // ===== UNDO =====
@@ -2037,6 +2046,8 @@ function applyState(d){
   S.nextNameId=d.nextNameId||0;S.sch=d.sch||null;S.attend=d.attend||{};S.fixedMembers=d.fixedMembers||{};
   S.sessions=Array.isArray(d.sessions)?d.sessions:[];
   S.curName=d.curName||'';S.curDate=d.curDate||'';
+  S.showNumbers=d.showNumbers!==false;
+  const _snc=document.getElementById('showNumChk');if(_snc)_snc.checked=S.showNumbers;
   // 기존 ㄱㄴㄷ 코드를 숫자로 마이그레이션
   const oldCodes=['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ','ㄲ','ㄸ','ㅃ','ㅆ','ㅉ'];
   if(S.staff.length&&oldCodes.includes(S.staff[0].code)){
@@ -2128,15 +2139,42 @@ function renameSlot(id){
   renderSaveList();refreshSaveSelect();cloudPush();
 }
 function updateCurrentSaveLabel(){
-  const el=document.getElementById('currentSaveLabel');if(!el)return;
-  if(S.curName||S.curDate){
-    el.textContent=`${S.curName||S.curDate}${S.curDate?` · 📅 ${S.curDate}`:''}`;
-    el.classList.remove('text-[#94a3b8]');el.classList.add('text-[#1e3a5f]');
-  }else{
-    el.textContent='아직 저장 안 됨 — 💾 저장으로 제목·날짜를 지정하세요';
-    el.classList.remove('text-[#1e3a5f]');el.classList.add('text-[#94a3b8]');
+  const has=!!(S.curName||S.curDate);
+  const el=document.getElementById('currentSaveLabel');
+  if(el){
+    if(has){ el.textContent=`${S.curName||S.curDate}${S.curDate?` · 📅 ${S.curDate}`:''}`;
+      el.classList.remove('text-[#94a3b8]');el.classList.add('text-[#1e3a5f]'); }
+    else{ el.textContent='아직 저장 안 됨 — 💾 저장으로 제목·날짜를 지정하세요';
+      el.classList.remove('text-[#1e3a5f]');el.classList.add('text-[#94a3b8]'); }
+  }
+  // 헤더 로고 옆 현재 저장본명
+  const hdr=document.getElementById('headerSaveName');
+  if(hdr){
+    if(has){ hdr.textContent=`📂 ${S.curName||S.curDate}`; hdr.classList.remove('hidden'); }
+    else{ hdr.textContent=''; hdr.classList.add('hidden'); }
   }
 }
+// 새 시트 시작 (빈 출결·근무표). 저장본은 그대로 남음.
+function newSheet(){
+  if(!confirm('새 시트를 시작할까요?\n저장하지 않은 현재 화면 내용은 사라집니다.\n(저장해 둔 저장본은 그대로 남아 있습니다)'))return;
+  autoSave(); // 현재 상태를 자동 백업(Ctrl+Z 되돌리기 가능)
+  const n=Math.max(1, S.staff.length||15);
+  const blankStaff=[]; for(let i=0;i<n;i++)blankStaff.push({code:String(i+1),type:i<S.fixedCount?'fixed':'rotate',restMin:S.restMin});
+  applyState({
+    openH:S.openH,closeH:S.closeH,restMin:S.restMin,restUnit:S.restUnit,maxParts:S.maxParts,fixedCount:S.fixedCount,restMode:S.restMode,
+    zones:S.zones,coverZone:S.coverZone,pools:S.pools,
+    staff:blankStaff,nameMap:{},nameEntries:[],nextNameId:0,sch:null,attend:{},
+    sessions:[{id:uid(),label:'1회차',base:'09:00',recs:{}}],fixedMembers:{},
+    curName:'',curDate:'',showNumbers:S.showNumbers
+  });
+  // 근무표 영역 초기화 표시
+  const so=document.getElementById('schOut');if(so)so.innerHTML='<p class="text-center text-[#94a3b8] py-10">🤖 자동 생성 버튼을 눌러 스케줄을 만드세요.</p>';
+  const rb=document.getElementById('ruleBox');if(rb)rb.classList.add('hidden');
+  const nbw=document.getElementById('nameBankWrap');if(nbw)nbw.classList.add('hidden');
+  autoSave();
+  toast('📄','새 시트 시작 — 새 출결·근무표를 입력하세요');
+}
+function toggleShowNumbers(on){ S.showNumbers=!!on; renderAtt(); autoSave(); }
 function refreshSaveSelect(){
   const sel=document.getElementById('saveSelect');if(!sel)return;
   const slots=slotsByDateDesc();let h='<option value="">📂 저장본 선택…</option>';let cur=null;

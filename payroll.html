@@ -54,6 +54,20 @@
   .preset-btn{font-size:12px;padding:6px 10px;border:1px solid var(--line);background:var(--soft);border-radius:8px;cursor:pointer;font-weight:600;color:var(--ink);transition:.15s}
   .preset-btn:hover{border-color:var(--accent);color:var(--accent)}
 
+  /* 커스텀 시간 피커 */
+  .tf{position:relative}
+  .tf-native{position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;padding:0;border:0;margin:0;background:transparent}
+  .tf-btn{width:100%;text-align:left;font-family:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--soft);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .tf-btn::after{content:'🕐';opacity:.55;font-size:13px;flex:none}
+  .tf-btn:hover{border-color:#cbd5e1}
+  .tf.open .tf-btn{border-color:var(--accent);background:var(--card);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+  .tf-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(15,23,42,.2);overflow:hidden}
+  .tf-col{max-height:208px;overflow-y:auto;border-right:1px solid var(--line);min-width:56px}
+  .tf-col:last-child{border-right:none}
+  .tf-opt{padding:9px 13px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;color:var(--ink);white-space:nowrap}
+  .tf-opt:hover{background:var(--soft)}
+  .tf-opt.sel{background:var(--accent);color:#fff}
+
   .btnrow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
   .btn{flex:1;min-width:120px;font-family:inherit;font-size:14px;font-weight:700;border:none;border-radius:10px;padding:12px;cursor:pointer;transition:.15s}
   .btn-p{background:var(--accent);color:#fff}.btn-p:hover{background:#1d4ed8}
@@ -263,12 +277,18 @@
         <span class="hint">모든 수당이 녹아든, 시간당 평균 단가</span>
       </div>
       <div class="field">
-        <label for="start">근무 시작</label>
-        <input id="start" type="time" step="300" value="18:00">
+        <label>근무 시작</label>
+        <div class="tf">
+          <button type="button" class="tf-btn" data-target="start"></button>
+          <input id="start" type="time" step="300" value="18:00" class="tf-native" tabindex="-1">
+        </div>
       </div>
       <div class="field">
-        <label for="end">근무 종료 <span id="nextDay" class="badge" style="display:none">익일</span></label>
-        <input id="end" type="time" step="300" value="02:00">
+        <label>근무 종료 <span id="nextDay" class="badge" style="display:none">익일</span></label>
+        <div class="tf">
+          <button type="button" class="tf-btn" data-target="end"></button>
+          <input id="end" type="time" step="300" value="02:00" class="tf-native" tabindex="-1">
+        </div>
       </div>
       <div class="field">
         <label for="brk">휴게 시간 (분)</label>
@@ -383,11 +403,11 @@ function buildComponents(r, st){
     {key:'juhyu', nm:'주휴수당',     mult:r.juhyuMult, amt:r.juhyuAmt, color:'var(--juhyu)', sub: st.juhyuOff ? '주 15시간 미만 — 주휴 제외' : `주휴 배수 ×${r.juhyuMult.toFixed(2)} ${r.T>=8?'(8h↑ 고정 1.6)':'(T×0.2)'}`},
   ];
   if(!st.under5 && st.holiday){
-    comps.push({key:'holiday', nm:'휴일근로수당', mult:r.holidayMult, amt:r.holidayAmt, color:'var(--ext)', sub:`휴일 ${h2(r.T)}h · 8h내 0.5·초과 1.0`});
+    comps.push({key:'holiday', nm:'휴일근로수당', mult:r.holidayMult, amt:r.holidayAmt, color:'var(--ext)', sub:`휴일 ${h2(r.T)}h · 8h내 50%·초과 100% 가산`});
   }else{
-    comps.push({key:'ext', nm:'연장수당', mult:r.extMult, amt:r.extAmt, color:'var(--ext)', sub: st.under5 ? `연장 ${h2(r.E)}h · 5인 미만 면제` : `연장 ${h2(r.E)}h × 0.5 가산`});
+    comps.push({key:'ext', nm:'연장수당', mult:r.extMult, amt:r.extAmt, color:'var(--ext)', sub: st.under5 ? `연장 ${h2(r.E)}h · 5인 미만 면제` : `연장 ${h2(r.E)}h · 기본의 50% 가산 (시간당 1.5배)`});
   }
-  comps.push({key:'night', nm:'야간수당', mult:r.nightMult, amt:r.nightAmt, color:'var(--night)', sub: st.under5 ? `야간 ${h2(r.N)}h · 5인 미만 면제` : `야간 ${h2(r.N)}h × 0.5 가산`});
+  comps.push({key:'night', nm:'야간수당', mult:r.nightMult, amt:r.nightAmt, color:'var(--night)', sub: st.under5 ? `야간 ${h2(r.N)}h · 5인 미만 면제` : `야간 ${h2(r.N)}h · 기본의 50% 가산 (시간당 1.5배)`});
   return comps;
 }
 
@@ -461,6 +481,7 @@ function computeStaff(inp, st){
 
 // ===== 상세 렌더 (현재 입력 1명) =====
 function render(){
+  syncTimeButtons();
   const inp=readForm(), st=getSettings();
   $('lateHint').textContent = (LATE_LABEL[st.lateUnit]||'5분 단위 올림')+' 공제';
   const sMin=toMin(inp.start), eRaw=toMin(inp.end);
@@ -548,7 +569,8 @@ function render(){
           </tr>
         </tbody>
       </table>
-      <p class="note">· <b>시간당 평균 단가</b> 합계 = 목표 실질 시급, <b>총 일급 반영액</b> 합계 = 목표 총 일급 (오차 0).</p>
+      <p class="note">· <b>시간당 평균 단가</b> 합계 = 목표 실질 시급, <b>총 일급 반영액</b> 합계 = 목표 총 일급 (오차 0). 단가는 <b>전체 근무시간 평균</b>이라 가산 항목은 작게 보입니다.<br>
+      · 연장·야간 시간은 기본시급의 <b>1.5배</b>(50% 가산), <b>연장이면서 야간</b>인 시간은 <b>2배</b>로 계산됩니다(두 가산 합산).</p>
     </div>
 
     <div class="card">
@@ -739,6 +761,51 @@ function applyPreset(s,e,b){
   render();
 }
 
+// ===== 커스텀 시간 피커 (텍스트 클릭으로 열림, 분 선택 시 완료·닫힘) =====
+function fmtTimeKo(hhmm){
+  if(!hhmm) return '시간 선택';
+  let [h,m]=hhmm.split(':').map(Number); if(isNaN(h)) return '시간 선택';
+  const ap=h<12?'오전':'오후'; let h12=h%12; if(h12===0)h12=12;
+  return `${ap} ${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+function syncTimeButtons(){
+  document.querySelectorAll('.tf-btn').forEach(b=>{ const inp=$(b.dataset.target); if(inp) b.textContent=fmtTimeKo(inp.value); });
+}
+let _tfOpen=null;
+function closeTimePicker(){
+  if(!_tfOpen) return;
+  const inp=$(_tfOpen), tf=inp&&inp.closest('.tf');
+  if(tf){ tf.classList.remove('open'); const p=tf.querySelector('.tf-pop'); if(p)p.remove(); }
+  _tfOpen=null;
+}
+function openTimePicker(target){
+  if(_tfOpen===target){ closeTimePicker(); return; }
+  closeTimePicker();
+  const inp=$(target); if(!inp) return;
+  const tf=inp.closest('.tf');
+  let [H,M]=(inp.value||'00:00').split(':').map(Number); if(isNaN(H))H=0; if(isNaN(M))M=0;
+  let ap=H<12?'오전':'오후'; let h12=H%12; if(h12===0)h12=12; let m5=Math.round(M/5)*5; if(m5>55)m5=55;
+  function commit(){
+    let h24=h12%12; if(ap==='오후')h24+=12;       // 오전12→0, 오후12→12, 오후1~11→13~23
+    inp.value=`${String(h24).padStart(2,'0')}:${String(m5).padStart(2,'0')}`;
+    inp.dispatchEvent(new Event('change',{bubbles:true}));
+    syncTimeButtons(); closeTimePicker();
+  }
+  function makeCol(values, sel, onPick){
+    const c=document.createElement('div'); c.className='tf-col';
+    values.forEach(v=>{ const o=document.createElement('div'); o.className='tf-opt'+(v===sel?' sel':''); o.textContent=v;
+      o.addEventListener('click',ev=>{ ev.stopPropagation(); c.querySelectorAll('.tf-opt').forEach(x=>x.classList.remove('sel')); o.classList.add('sel'); onPick(v); });
+      c.appendChild(o); });
+    return c;
+  }
+  const pop=document.createElement('div'); pop.className='tf-pop';
+  pop.appendChild(makeCol(['오전','오후'], ap, v=>{ ap=v; }));
+  pop.appendChild(makeCol(Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0')), String(h12).padStart(2,'0'), v=>{ h12=+v; }));
+  pop.appendChild(makeCol(Array.from({length:12},(_,i)=>String(i*5).padStart(2,'0')), String(m5).padStart(2,'0'), v=>{ m5=+v; commit(); }));  // 분 선택 → 완료
+  tf.appendChild(pop); tf.classList.add('open'); _tfOpen=target;
+  pop.querySelectorAll('.tf-col').forEach(c=>{ const s=c.querySelector('.tf-opt.sel'); if(s)s.scrollIntoView({block:'center'}); });
+}
+
 // ===== 다크 모드 =====
 const LS_THEME='payrollCalc_theme';
 function applyTheme(t){
@@ -801,6 +868,9 @@ function loadFromHash(){
   $(id).addEventListener('input', render); $(id).addEventListener('change', render);
 });
 ['minWage','taxMode','under5','juhyuOff','holiday','lateUnit','lateBase'].forEach(id=> $(id).addEventListener('change', renderRoster));
+// 커스텀 시간 피커 열기: 시간 필드(텍스트 포함) 클릭 시 / 바깥 클릭 시 닫기
+document.querySelectorAll('.tf-btn').forEach(b=> b.addEventListener('click', e=>{ e.stopPropagation(); openTimePicker(b.dataset.target); }));
+document.addEventListener('click', e=>{ if(_tfOpen && !e.target.closest('.tf')) closeTimePicker(); });
 try{ applyTheme(localStorage.getItem(LS_THEME)||'light'); }catch(e){}
 const fromHash=loadFromHash();
 const loaded=fromHash||loadAll();
