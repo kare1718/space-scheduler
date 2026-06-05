@@ -1,4 +1,4 @@
-const CACHE='spaceschV14';
+const CACHE='spaceschV15';
 const URLS=['./','./index.html','./payroll.html','./manifest.json','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(URLS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(
