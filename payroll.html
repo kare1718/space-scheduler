@@ -118,9 +118,17 @@
   #importBox{margin-bottom:14px;padding:14px;background:var(--soft);border:1px dashed var(--line);border-radius:10px}
   #importArea{min-height:88px;font-size:14px;font-weight:500;resize:vertical}
   .roster-wrap{overflow-x:auto}
-  table.roster{min-width:480px}
+  table.roster{min-width:560px}
   table.roster td.item{font-weight:700}
   table.roster td.acts{white-space:nowrap;text-align:right}
+  .r-name{width:100%;max-width:150px;font-size:13.5px;font-weight:700;font-family:inherit;color:var(--ink);background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 7px}
+  .r-name:hover{border-color:var(--line)}
+  .r-name:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+  .r-name::placeholder{color:#cbd5e1;font-weight:500}
+  .r-late{width:66px;font-size:13.5px;font-weight:700;font-family:inherit;color:var(--ink);background:var(--soft);border:1.5px solid var(--line);border-radius:7px;padding:6px 7px;text-align:center}
+  .r-late:focus{outline:none;border-color:var(--accent);background:var(--card);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+  .r-late.on{border-color:var(--warn);background:#fef2f2;color:var(--warn)}
+  body.dark .r-late.on{background:#3b1d22;color:#fca5a5}
   .mini{border:none;background:#e8edf3;color:#1e3a5f;border-radius:7px;padding:6px 9px;font-size:12px;font-weight:700;cursor:pointer;margin-left:4px}
   .mini:hover{background:#dce3ed}
   .mini.del{background:#fef2f2;color:var(--warn)}
@@ -297,12 +305,12 @@
   <!-- 명단 -->
   <div class="card">
     <h2>⑤ 명단 &amp; 합계 <span id="rosterCount" class="badge" style="display:none"></span>
-      <button class="icon-btn" onclick="toggleImport()">📋 일괄 가져오기</button>
+      <button class="icon-btn" onclick="toggleImport()">👥 여러 명 한 번에</button>
     </h2>
     <div id="importBox" style="display:none">
-      <textarea id="importArea" placeholder="이름만, 또는 '이름, 지각분' 형식으로 한 줄에 한 명씩 붙여넣기&#10;예)&#10;홍길동&#10;김철수, 10&#10;이영희&#9;25"></textarea>
-      <p class="hint" style="margin:8px 0 10px">현재 ① 입력의 근무조건(시급·시작·종료·휴게)을 <b>공통 적용</b>합니다. 줄마다 숫자가 있으면 그 사람의 <b>지각(분)</b>으로 반영됩니다. (스케줄러·엑셀에서 복사한 명단도 가능)</p>
-      <button class="btn btn-p" onclick="applyImport()" style="width:100%">가져와서 명단 추가</button>
+      <p class="hint" style="margin:0 0 8px">① 입력의 <b>근무조건(시급·시작·종료·휴게)을 전원 공통 적용</b>합니다. 이름을 한 줄에 한 명씩 적으세요. <b>지각자만</b> 이름 뒤에 분을 적거나(예: <code>김철수, 10</code>), 추가한 뒤 아래 표의 <b>지각(분)</b> 칸에서 바로 고치세요.</p>
+      <textarea id="importArea" placeholder="홍길동&#10;김철수, 10&#10;이영희&#9;25&#10;박민수"></textarea>
+      <button class="btn btn-p" onclick="applyImport()" style="width:100%;margin-top:10px">전원 명단에 추가</button>
     </div>
     <div class="roster-wrap" id="rosterWrap"></div>
   </div>
@@ -591,38 +599,68 @@ function resetForm(){
   editId=null; $('editTag').style.display='none'; $('addBtn').textContent='＋ 명단에 추가';
   render();
 }
+function rosterSubHtml(e, c){
+  const tag = (c.dedAmt>0?` <span style="color:var(--warn);font-size:11px">지각 −${won(c.dedAmt)}</span>`:'') + (c.belowMin?' <span style="color:var(--warn);font-size:11px">⚠최저미만</span>':'');
+  return `${esc(e.start)}~${esc(e.end)} · 실근무 ${h2(c.r.T)}h${tag}`;
+}
 function renderRoster(){
   const w=$('rosterWrap'), st=getSettings(), cnt=$('rosterCount');
-  if(!roster.length){ w.innerHTML='<div class="empty">아직 명단이 없습니다. 위에서 정보를 입력하고 <b>＋ 명단에 추가</b>를 누르거나, <b>📋 일괄 가져오기</b>로 여러 명을 한 번에 추가하세요.</div>'; cnt.style.display='none'; return; }
+  if(!roster.length){ w.innerHTML='<div class="empty">아직 명단이 없습니다. 위 ① 입력으로 한 명씩 <b>＋ 명단에 추가</b>하거나, <b>👥 여러 명 한 번에</b>로 이름을 한꺼번에 넣으세요. 근무조건은 공통, 지각자만 표에서 따로 고치면 됩니다.</div>'; cnt.style.display='none'; return; }
   cnt.style.display='inline-block'; cnt.textContent=`${roster.length}명`;
   let sumTotal=0, sumTax=0, sumHome=0, body='';
   roster.forEach(e=>{
     const c=computeStaff(e, st);
     const editing = e.id===editId ? ' editing' : '';
+    const nameInput=`<input class="r-name" value="${esc(e.name||'')}" placeholder="이름" oninput="updateRosterField(${e.id},'name',this.value)">`;
     if(!c.valid){
-      body+=`<tr class="${editing}"><td class="item">${esc(e.name)}</td><td colspan="2" style="color:var(--warn);text-align:left">입력 오류</td>
+      body+=`<tr class="${editing}"><td class="item">${nameInput}</td><td colspan="3" style="color:var(--warn);text-align:left;font-size:12px">⚠️ 시간 확인</td>
         <td class="acts"><button class="mini" onclick="editRoster(${e.id})">편집</button><button class="mini del" onclick="removeRoster(${e.id})">삭제</button></td></tr>`;
       return;
     }
     sumTotal+=c.netPay; sumTax+=c.tax.total; sumHome+=c.takeHome;
-    const tag = (c.dedAmt>0?` <span style="color:var(--warn);font-size:11px">지각 −${won(c.dedAmt)}</span>`:'') + (c.belowMin?' <span style="color:var(--warn);font-size:11px">⚠최저미만</span>':'');
     body+=`<tr class="${editing}">
-      <td class="item">${esc(e.name||'(이름 없음)')}<span class="sub" style="display:block;font-size:11px;font-weight:500;color:var(--sub)">${esc(e.start)}~${esc(e.end)} · 실근무 ${h2(c.r.T)}h${tag}</span></td>
-      <td>${won(c.netPay)}</td>
-      <td><b>${won(c.takeHome)}</b></td>
-      <td class="acts"><button class="mini" onclick="printPayslipFor(${e.id})">🖨️</button><button class="mini" onclick="editRoster(${e.id})">편집</button><button class="mini del" onclick="removeRoster(${e.id})">삭제</button></td>
+      <td class="item">${nameInput}<span class="sub" id="rsub-${e.id}" style="display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:2px">${rosterSubHtml(e,c)}</span></td>
+      <td><input class="r-late ${c.dedAmt>0?'on':''}" id="rlate-${e.id}" type="number" inputmode="numeric" min="0" step="5" value="${e.late||0}" oninput="updateRosterField(${e.id},'late',this.value)" onchange="this.value=Math.max(0,+this.value||0)" title="지각 분 — 지각자만 입력"></td>
+      <td id="rnet-${e.id}">${won(c.netPay)}</td>
+      <td id="rhome-${e.id}"><b>${won(c.takeHome)}</b></td>
+      <td class="acts"><button class="mini" onclick="printPayslipFor(${e.id})" title="급여명세서">🖨️</button><button class="mini" onclick="editRoster(${e.id})" title="시급·시간 등 전체 편집">편집</button><button class="mini del" onclick="removeRoster(${e.id})">삭제</button></td>
     </tr>`;
   });
   w.innerHTML=`<table class="roster">
-    <thead><tr><th>이름 / 근무</th><th>세전 실지급</th><th>실수령</th><th></th></tr></thead>
+    <thead><tr><th>이름 / 근무</th><th>지각(분)</th><th>세전 실지급</th><th>실수령</th><th></th></tr></thead>
     <tbody>${body}</tbody>
     <tfoot><tr class="rtotal">
       <td>합계 ${roster.length}명</td>
-      <td class="price">${won(sumTotal)}</td>
-      <td class="price">${won(sumHome)}</td>
-      <td class="acts" style="font-size:11px;color:var(--sub);font-weight:600">세금 ${won(sumTax)}</td>
+      <td></td>
+      <td class="price" id="rfoot-net">${won(sumTotal)}</td>
+      <td class="price" id="rfoot-home">${won(sumHome)}</td>
+      <td class="acts" id="rfoot-tax" style="font-size:11px;color:var(--sub);font-weight:600">세금 ${won(sumTax)}</td>
     </tr></tfoot>
   </table>`;
+}
+// 인라인 편집: 이름은 데이터만(재계산 불필요), 지각은 해당 행 + 합계만 즉시 갱신(포커스 유지)
+function updateRosterField(id, field, val){
+  const e=roster.find(x=>x.id===id); if(!e) return;
+  if(field==='name'){ e.name=val; saveAll(); return; }
+  if(field==='late'){ e.late=Math.max(0, +val||0); recomputeRosterRow(id); saveAll(); }
+}
+function recomputeRosterRow(id){
+  const e=roster.find(x=>x.id===id); if(!e) return;
+  const c=computeStaff(e, getSettings());
+  const net=$('rnet-'+id), home=$('rhome-'+id), sub=$('rsub-'+id), lateInp=$('rlate-'+id);
+  if(c.valid){
+    if(net) net.textContent=won(c.netPay);
+    if(home) home.innerHTML='<b>'+won(c.takeHome)+'</b>';
+    if(sub) sub.innerHTML=rosterSubHtml(e, c);
+    if(lateInp) lateInp.classList.toggle('on', c.dedAmt>0);
+  }
+  updateRosterFooter();
+}
+function updateRosterFooter(){
+  const st=getSettings(); let sN=0,sT=0,sH=0;
+  roster.forEach(e=>{ const c=computeStaff(e, st); if(c.valid){ sN+=c.netPay; sT+=c.tax.total; sH+=c.takeHome; } });
+  const n=$('rfoot-net'), h=$('rfoot-home'), t=$('rfoot-tax');
+  if(n)n.textContent=won(sN); if(h)h.textContent=won(sH); if(t)t.textContent='세금 '+won(sT);
 }
 
 // ===== 명단 일괄 가져오기 =====
